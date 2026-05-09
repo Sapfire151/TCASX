@@ -72,6 +72,27 @@ const EXPLORE_ITEMS = [
   { id:7, name:'อาสาสมัครสอนหนังสือเด็กชายขอบ', type:'volunteer', level:'school', month:6, emoji:'📚', deadline:'ตลอดปี', spots:30, cert:'โรงเรียน' },
   { id:8, name:'แข่งขันหุ่นยนต์ FIRST Robotics', type:'academic', level:'international', month:10, emoji:'🤖', deadline:'30 ก.ย. 69', spots:60, cert:'นานาชาติ' },
   { id:9, name:'ประกวดสุนทรพจน์ภาษาอังกฤษ', type:'language', level:'regional', month:9, emoji:'🎤', deadline:'20 ส.ค. 69', spots:100, cert:'ภาค' },
+  { id:10, name:'แข่งขันตอบปัญหา กฎหมายระดับมัธยม', type:'academic', level:'national', month:11, emoji:'⚖️', deadline:'15 ต.ค. 69', spots:200, cert:'ประเทศ' },
+  { id:11, name:'ค่ายเยาวชนอนุรักษ์สิ่งแวดล้อมป่าชายเลน', type:'volunteer', level:'regional', month:5, emoji:'🌱', deadline:'30 เม.ย. 69', spots:60, cert:'ภาค' },
+  { id:12, name:'ประกวดวงโยธวาทิตระดับนานาชาติ', type:'sport_art', level:'international', month:12, emoji:'🎺', deadline:'30 พ.ย. 69', spots:50, cert:'นานาชาติ' },
+  { id:13, name:'ประธานสี งานกีฬาสีโรงเรียน', type:'leadership', level:'school', month:12, emoji:'🚩', deadline:'1 พ.ย. 69', spots:1, cert:'โรงเรียน' },
+  { id:14, name:'โครงการแข่งขันเขียนโปรแกรม (Hackathon)', type:'academic', level:'national', month:8, emoji:'💻', deadline:'15 ก.ค. 69', spots:150, cert:'ประเทศ' },
+  { id:15, name:'ค่ายเยาวชนนักออกแบบ (Design Camp)', type:'sport_art', level:'regional', month:10, emoji:'✏️', deadline:'20 ก.ย. 69', spots:80, cert:'ภาค' },
+  { id:16, name:'ประกวดแต่งกลอนสี่สุภาพระดับประเทศ', type:'language', level:'national', month:6, emoji:'📝', deadline:'1 มิ.ย. 69', spots:300, cert:'ประเทศ' },
+  { id:17, name:'จิตอาสากู้ภัย สมาคมสว่างบุญ', type:'volunteer', level:'regional', month:3, emoji:'🚑', deadline:'ตลอดปี', spots:100, cert:'ภาค' },
+  { id:18, name:'ค่ายผู้นำเยาวชนสร้างสรรค์', type:'leadership', level:'regional', month:4, emoji:'💡', deadline:'15 มี.ค. 69', spots:70, cert:'ภาค' },
+  { id:19, name:'การแข่งขันกีฬาเยาวชนแห่งชาติ', type:'sport_art', level:'national', month:2, emoji:'🏅', deadline:'15 ม.ค. 69', spots:1000, cert:'ประเทศ' },
+  { id:20, name:'อบรมภาษาญี่ปุ่นสำหรับสอบ JLPT N4', type:'language', level:'school', month:9, emoji:'🇯🇵', deadline:'31 ส.ค. 69', spots:40, cert:'โรงเรียน' },
+  { id:21, name:'ประกวดหนังสั้นสะท้อนสังคม', type:'sport_art', level:'national', month:11, emoji:'🎬', deadline:'31 ต.ค. 69', spots:200, cert:'ประเทศ' },
+  { id:22, name:'อาสาสมัครดูแลสัตว์จรจัด', type:'volunteer', level:'school', month:5, emoji:'🐶', deadline:'ตลอดปี', spots:50, cert:'โรงเรียน' },
+  { id:23, name:'การแข่งขันโครงงานวิทยาศาสตร์ระดับภาค', type:'academic', level:'regional', month:7, emoji:'🔭', deadline:'15 มิ.ย. 69', spots:300, cert:'ภาค' },
+  { id:24, name:'ค่ายสถาปัตย์จูเนียร์', type:'academic', level:'national', month:4, emoji:'🏛️', deadline:'1 มี.ค. 69', spots:100, cert:'ประเทศ' },
+  { id:25, name:'แข่งขัน HSK ระดับ 4', type:'language', level:'international', month:10, emoji:'🇨🇳', deadline:'31 ส.ค. 69', spots:500, cert:'นานาชาติ' },
+  { id:26, name:'หัวหน้าโปรเจกต์งานนิทรรศการวิชาการ', type:'leadership', level:'school', month:1, emoji:'📋', deadline:'1 ธ.ค. 68', spots:5, cert:'โรงเรียน' },
+  { id:27, name:'อาสาสมัครแพ็คถุงยังชีพ สภากาชาด', type:'volunteer', level:'national', month:8, emoji:'🎒', deadline:'15 ก.ค. 69', spots:500, cert:'ประเทศ' },
+  { id:28, name:'แข่งขันประกวดโมเดลธุรกิจเยาวชน', type:'leadership', level:'national', month:9, emoji:'📊', deadline:'15 ส.ค. 69', spots:100, cert:'ประเทศ' },
+  { id:29, name:'โครงการแลกเปลี่ยนนักเรียน AFS', type:'language', level:'international', month:6, emoji:'✈️', deadline:'1 พ.ค. 69', spots:30, cert:'นานาชาติ' },
+  { id:30, name:'ค่ายเตรียมความพร้อมสู่วิศวกรรมศาสตร์', type:'academic', level:'national', month:10, emoji:'⚙️', deadline:'15 ก.ย. 69', spots:150, cert:'ประเทศ' }
 ];
 
 const TYPE_LABELS = { academic:'วิชาการ', volunteer:'จิตอาสา', leadership:'ความเป็นผู้นำ', sport_art:'กีฬา/ศิลปะ', language:'ภาษา' };
@@ -90,11 +111,19 @@ const defaultState = {
     { id:1, name:'แข่งขันคณิตศาสตร์ สพฐ.', type:'academic', level:'regional', date:'2026-02-15', status:'completed', desc:'ได้รับรางวัลรองชนะเลิศ' },
     { id:2, name:'ค่ายอาสาพัฒนาโรงเรียนบนดอย', type:'volunteer', level:'school', date:'2026-01-20', status:'completed', desc:'เข้าร่วม 3 วัน' },
     { id:3, name:'ประธานชมรมวิทยาศาสตร์', type:'leadership', level:'school', date:'2026-03-01', status:'inprogress', desc:'ดำรงตำแหน่งปีการศึกษา 2569' },
+    { id:4, name:'การแข่งขันกีฬาเยาวชนแห่งชาติ', type:'sport_art', level:'national', date:'2026-02-10', status:'completed', desc:'นักกีฬาบาสเกตบอลตัวแทนจังหวัด' },
+    { id:5, name:'ประกวดสุนทรพจน์ภาษาอังกฤษ', type:'language', level:'regional', date:'2026-04-10', status:'planned', desc:'เตรียมตัวเพื่อแข่งขันระดับภาค' },
+    { id:6, name:'ค่าย Data Science for Teens', type:'academic', level:'national', date:'2026-05-20', status:'planned', desc:'รอประกาศผลการคัดเลือก' }
   ],
   roadmap: [
     { id:1, name:'ค่ายโอลิมปิกวิชาการ', type:'academic', month:6, status:'planned' },
     { id:2, name:'โครงการจิตอาสาชุมชน', type:'volunteer', month:7, status:'planned' },
     { id:3, name:'สอบ TOEFL', type:'language', month:8, status:'planned' },
+    { id:4, name:'ประกวดวาดภาพ ศิลปะเด็กไทย', type:'sport_art', month:9, status:'planned' },
+    { id:5, name:'ค่ายผู้นำเยาวชน สภานักเรียน', type:'leadership', month:7, status:'planned' },
+    { id:6, name:'แข่งขันโครงงานวิทยาศาสตร์ระดับภาค', type:'academic', month:7, status:'planned' },
+    { id:7, name:'ค่ายเยาวชนนักออกแบบ (Design Camp)', type:'sport_art', month:10, status:'planned' },
+    { id:8, name:'แข่งขันตอบปัญหา กฎหมายระดับมัธยม', type:'academic', month:11, status:'planned' }
   ]
 };
 
