@@ -440,4 +440,6 @@ const fua = document.getElementById('fileUploadArea');
 if(fua) { fua.addEventListener('click',()=>document.getElementById('actCert').click()); }
 
 // ========== Init ==========
-initApp();
+loadExternalData().then(() => {
+  initApp();
+});
