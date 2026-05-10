@@ -218,49 +218,44 @@ function renderGlobal() {
       <h3 style="margin-bottom:12px;">🌟 แรงบันดาลใจจากเพื่อนๆ 🌟</h3>
       <p style="color:var(--gray-400); margin-bottom: 24px;">ดูพอร์ตที่น่าสนใจของคนที่เปิดสาธารณะ</p>
       
-      <div class="dash-grid-3">
-        <!-- Mock public profiles -->
+      <div id="publicUsersGrid" class="dash-grid-3">
+        <p style="grid-column: 1/-1; color:var(--gray-400); text-align:center;">กำลังโหลดข้อมูล...</p>
+      </div>
+    </div>
+  </div>`;
+  loadPublicUsers();
+}
+
+async function loadPublicUsers() {
+  try {
+    const snap = await db.collection('users').where('isPublic', '==', true).limit(12).get();
+    let html = '';
+    snap.forEach(doc => {
+      const data = doc.data();
+      const pct = Math.min(100, Math.round((data.activities?.length || 0) * 15));
+      html += `
         <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
             <div style="font-size:2rem;">🧑‍🎓</div>
             <div>
-              <div style="font-weight:700;">น้องมายด์ สายวิทย์</div>
-              <div style="font-size:0.8rem; color:var(--gray-400);">ม.6 — คณะแพทยศาสตร์</div>
+              <div style="font-weight:700;">${data.name || 'Anonymous'}</div>
+              <div style="font-size:0.8rem; color:var(--gray-400);">${data.grade || '-'} — ${data.track || '-'}</div>
             </div>
           </div>
-          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:80%;background:var(--green)"></div></div>
-          <p style="font-size:0.8rem; margin-bottom:12px;">พอร์ตสายแพทย์เน้นวิชาการและจิตอาสา</p>
+          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:${pct}%;background:var(--primary)"></div></div>
+          <p style="font-size:0.8rem; margin-bottom:12px;">${data.bio || 'ไม่มีข้อมูลแนะนำตัว'}</p>
           <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
         </div>
-        
-        <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-            <div style="font-size:2rem;">👩‍💻</div>
-            <div>
-              <div style="font-weight:700;">กาย สายเขียนโค้ด</div>
-              <div style="font-size:0.8rem; color:var(--gray-400);">ม.5 — คณะวิศวกรรมศาสตร์</div>
-            </div>
-          </div>
-          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:65%;background:var(--primary)"></div></div>
-          <p style="font-size:0.8rem; margin-bottom:12px;">เน้นประกวด Hackathon และค่ายคอมฯ</p>
-          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
-        </div>
-        
-        <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-            <div style="font-size:2rem;">🎨</div>
-            <div>
-              <div style="font-weight:700;">ฟ้า ศิลป์ภาษา</div>
-              <div style="font-size:0.8rem; color:var(--gray-400);">ม.6 — คณะอักษรศาสตร์</div>
-            </div>
-          </div>
-          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:90%;background:var(--accent)"></div></div>
-          <p style="font-size:0.8rem; margin-bottom:12px;">ผลงานด้านภาษา แลกเปลี่ยน และจิตอาสา</p>
-          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
-        </div>
-      </div>
-    </div>
-  </div>`;
+      `;
+    });
+    if(!html) html = '<p style="grid-column: 1/-1; color:var(--gray-400); text-align:center;">ยังไม่มีใครเปิดพอร์ตเป็นสาธารณะตอนนี้</p>';
+    const grid = document.getElementById('publicUsersGrid');
+    if (grid) grid.innerHTML = html;
+  } catch (e) {
+    const grid = document.getElementById('publicUsersGrid');
+    if (grid) grid.innerHTML = '<p style="grid-column: 1/-1; color:var(--red); text-align:center;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+    console.error("Error loading public users:", e);
+  }
 }
 
 // ========== Auth Logic ==========
@@ -324,13 +319,25 @@ async function completeLogin(user) {
       if (data.onboarded !== undefined) appState.onboarded = data.onboarded;
       if (data.activities) appState.activities = data.activities;
       if (data.roadmap) appState.roadmap = data.roadmap;
+      if (data.name) appState.currentUser.name = data.name;
+      appState.currentUser.bio = data.bio || '';
+      appState.currentUser.isPublic = !!data.isPublic;
     }
   } catch (e) {
     console.error("Error fetching user data", e);
   }
 
   saveState();
-  initApp();
+  
+  // Directly transition UI instead of calling initApp()
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appWrapper').style.display = 'block';
+  updateSidebarUser();
+  if (!appState.onboarded) {
+    showOnboarding();
+  } else {
+    navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
+  }
 }
 
 function logout() {
@@ -344,17 +351,22 @@ function logout() {
 }
 
 function initApp() {
-  auth.onAuthStateChanged((user) => {
-    if (user && appState.isAuthenticated) {
-      document.getElementById('authScreen').style.display = 'none';
-      document.getElementById('appWrapper').style.display = 'block';
-      updateSidebarUser();
-      if (!appState.onboarded) {
-        showOnboarding();
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      if (!appState.isAuthenticated) {
+        await completeLogin(user);
       } else {
-        navigate('dashboard');
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appWrapper').style.display = 'block';
+        updateSidebarUser();
+        if (!appState.onboarded) {
+          showOnboarding();
+        } else {
+          navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
+        }
       }
     } else {
+      appState.isAuthenticated = false;
       document.getElementById('appWrapper').style.display = 'none';
       document.getElementById('authScreen').style.display = 'flex';
     }
