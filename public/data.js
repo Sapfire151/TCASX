@@ -129,6 +129,9 @@ function saveState() {
       onboarded: appState.onboarded,
       activities: appState.activities,
       roadmap: appState.roadmap,
+      name: appState.currentUser?.name || '',
+      bio: appState.currentUser?.bio || '',
+      isPublic: !!appState.currentUser?.isPublic,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).catch(e => console.warn('Firestore save error:', e));
   }
