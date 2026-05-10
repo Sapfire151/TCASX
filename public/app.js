@@ -5,7 +5,7 @@ function navigate(page) {
   document.querySelectorAll('.nav-link,.tab-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
   const main = document.getElementById('mainContent');
   main.style.animation = 'none'; main.offsetHeight; main.style.animation = 'fadeIn .3s ease';
-  const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal };
+  const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal, rate: renderRate };
   (renderers[page] || renderDashboard)();
 }
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); }));
@@ -197,7 +197,7 @@ function renderRoadmap() {
   <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px">
     ${Object.entries(TYPE_LABELS).map(([k, v]) => `<div style="display:flex;align-items:center;gap:6px;font-size:.78rem"><div style="width:12px;height:12px;border-radius:3px;background:var(--cat-${k === 'sport_art' ? 'sport' : k})"></div>${v}</div>`).join('')}
     <div style="display:flex;align-items:center;gap:12px;font-size:.75rem;color:var(--gray-400);margin-left:auto">
-      <span>◻️ วางแผน</span><span>⬜ กำลังสมัคร</span><span style="text-decoration:line-through">ผ่านแล้ว</span>
+      <span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> วางแผน</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="vertical-align:middle; opacity:0.5;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> กำลังสมัคร</span><span style="text-decoration:line-through"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ผ่านแล้ว</span>
     </div>
   </div>`;
 }
@@ -236,7 +236,7 @@ async function loadPublicUsers() {
       html += `
         <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-            <div style="font-size:2rem;">🧑‍🎓</div>
+            <div style="font-size:2rem; color:var(--primary)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
             <div>
               <div style="font-weight:700;">${data.name || 'Anonymous'}</div>
               <div style="font-size:0.8rem; color:var(--gray-400);">${data.grade || '-'} — ${data.track || '-'}</div>
@@ -389,7 +389,7 @@ function renderOnboardingStep() {
 
   if (obStep === 1) {
     content.innerHTML = `
-      <h2 class="ob-title">👋 สวัสดี! มาเริ่มกันเลย</h2>
+      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> สวัสดี! มาเริ่มกันเลย</h2>
       <p class="ob-subtitle">เลือกชั้นปีและสายการเรียนของคุณ</p>
       <div class="form-group"><label>ชั้นปี</label>
         <div class="ob-options">${['ม.4', 'ม.5', 'ม.6'].map(g => `<div class="ob-option ${appState.grade === g ? 'selected' : ''}" onclick="selectGrade('${g}',this)">${g}</div>`).join('')}</div>
@@ -400,7 +400,7 @@ function renderOnboardingStep() {
       <div class="ob-nav"><div></div><button class="btn btn-primary" onclick="obStep=2;renderOnboardingStep()">ถัดไป →</button></div>`;
   } else if (obStep === 2) {
     content.innerHTML = `
-      <h2 class="ob-title">🎯 เลือกคณะเป้าหมาย</h2>
+      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> เลือกคณะเป้าหมาย</h2>
       <p class="ob-subtitle">ค้นหาและเลือกคณะในฝันของคุณ (เลือกได้สูงสุด 3 คณะ)</p>
       
       <div class="search-dropdown">
@@ -424,16 +424,16 @@ function renderOnboardingStep() {
     document.removeEventListener('click', closeDropdownOutside);
     const fac = FACULTIES.find(f => f.id === appState.faculties[0]);
     content.innerHTML = `
-      <h2 class="ob-title">📋 สรุปเป้าหมาย</h2>
+      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> สรุปเป้าหมาย</h2>
       <p class="ob-subtitle">ตรวจสอบข้อมูลของคุณก่อนเริ่มต้น</p>
       <div class="ob-summary"><h4>ข้อมูลของคุณ</h4><ul>
-        <li>🎓 ${appState.grade || 'ยังไม่ได้เลือก'} — ${appState.track || 'ยังไม่ได้เลือก'}</li>
-        <li>🎯 คณะเป้าหมาย: ${appState.faculties.map(id => { const f = FACULTIES.find(x => x.id === id); return f ? f.emoji + ' ' + f.name + ' ' + f.uni : ''; }).join(', ') || 'ยังไม่ได้เลือก'}</li>
+        <li><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> ${appState.grade || 'ยังไม่ได้เลือก'} — ${appState.track || 'ยังไม่ได้เลือก'}</li>
+        <li><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> คณะเป้าหมาย: ${appState.faculties.map(id => { const f = FACULTIES.find(x => x.id === id); return f ? f.emoji + ' ' + f.name + ' ' + f.uni : ''; }).join(', ') || 'ยังไม่ได้เลือก'}</li>
       </ul></div>
       ${fac ? `<div class="ob-summary"><h4>เกณฑ์ TCAS รอบ 1 — ${fac.name} ${fac.uni}</h4><ul>
         ${Object.entries(fac.req).filter(([, v]) => v > 0).map(([k, v]) => `<li>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}: ต้องการ ${v} คะแนนขึ้นไป</li>`).join('')}
       </ul></div>` : ''}
-      <div class="ob-nav"><button class="btn btn-secondary" onclick="obStep=2;renderOnboardingStep()">← ย้อนกลับ</button><button class="btn btn-accent" onclick="finishOnboarding()">🚀 เริ่มวางแผน!</button></div>`;
+      <div class="ob-nav"><button class="btn btn-secondary" onclick="obStep=2;renderOnboardingStep()">← ย้อนกลับ</button><button class="btn btn-accent" onclick="finishOnboarding()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> เริ่มวางแผน!</button></div>`;
   }
 }
 
