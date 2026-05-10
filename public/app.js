@@ -5,7 +5,7 @@ function navigate(page) {
   document.querySelectorAll('.nav-link,.tab-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
   const main = document.getElementById('mainContent');
   main.style.animation = 'none'; main.offsetHeight; main.style.animation = 'fadeIn .3s ease';
-  const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap };
+  const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal };
   (renderers[page] || renderDashboard)();
 }
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); }));
@@ -57,7 +57,7 @@ function renderDashboard() {
   <div class="quick-actions">
     <button class="quick-btn" onclick="navigate('portfolio')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> My Portfolio</button>
     <button class="quick-btn" onclick="navigate('explore')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Explore</button>
-    <button class="quick-btn" onclick="navigate('roadmap')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Roadmap</button>
+    <button class="quick-btn" onclick="navigate('global')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Share</button>
     <button class="quick-btn" onclick="showOnboarding()"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> ตั้งเป้าหมาย</button>
   </div>
 
@@ -89,7 +89,6 @@ function renderDashboard() {
         <div style="margin-bottom:16px;"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span></div>
         <div style="display:flex;gap:8px;flex-direction:row; margin-top:auto;">
           <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ Roadmap</button>
-          <a href="${a.link || '#'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> รายละเอียด</a>
         </div>
       </div>
     `).join('')}
@@ -159,7 +158,6 @@ function renderExplore() {
           </div>
           <div style="display:flex;gap:8px;flex-direction:row">
             <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
-            <a href="${a.link || '#'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> ดูรายละเอียด</a>
           </div>
         </div>
       </div>
@@ -200,6 +198,67 @@ function renderRoadmap() {
     ${Object.entries(TYPE_LABELS).map(([k, v]) => `<div style="display:flex;align-items:center;gap:6px;font-size:.78rem"><div style="width:12px;height:12px;border-radius:3px;background:var(--cat-${k === 'sport_art' ? 'sport' : k})"></div>${v}</div>`).join('')}
     <div style="display:flex;align-items:center;gap:12px;font-size:.75rem;color:var(--gray-400);margin-left:auto">
       <span>◻️ วางแผน</span><span>⬜ กำลังสมัคร</span><span style="text-decoration:line-through">ผ่านแล้ว</span>
+    </div>
+  </div>`;
+}
+
+// ========== Global ==========
+function renderGlobal() {
+  document.getElementById('mainContent').innerHTML = `
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Global Portfolios</h1>
+      <p style="color:var(--gray-400);font-size:.85rem">ดูพอร์ตฟอลิโอของเพื่อนๆ และแชร์พอร์ตของคุณให้โลกเห็น</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openProfileModal()">ตั้งค่าโปรไฟล์ & แชร์</button>
+  </div>
+  
+  <div class="dash-grid" style="grid-template-columns: 1fr;">
+    <div class="card" style="text-align:center; padding:40px 20px;">
+      <h3 style="margin-bottom:12px;">🌟 แรงบันดาลใจจากเพื่อนๆ 🌟</h3>
+      <p style="color:var(--gray-400); margin-bottom: 24px;">ดูพอร์ตที่น่าสนใจของคนที่เปิดสาธารณะ</p>
+      
+      <div class="dash-grid-3">
+        <!-- Mock public profiles -->
+        <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="font-size:2rem;">🧑‍🎓</div>
+            <div>
+              <div style="font-weight:700;">น้องมายด์ สายวิทย์</div>
+              <div style="font-size:0.8rem; color:var(--gray-400);">ม.6 — คณะแพทยศาสตร์</div>
+            </div>
+          </div>
+          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:80%;background:var(--green)"></div></div>
+          <p style="font-size:0.8rem; margin-bottom:12px;">พอร์ตสายแพทย์เน้นวิชาการและจิตอาสา</p>
+          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
+        </div>
+        
+        <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="font-size:2rem;">👩‍💻</div>
+            <div>
+              <div style="font-weight:700;">กาย สายเขียนโค้ด</div>
+              <div style="font-size:0.8rem; color:var(--gray-400);">ม.5 — คณะวิศวกรรมศาสตร์</div>
+            </div>
+          </div>
+          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:65%;background:var(--primary)"></div></div>
+          <p style="font-size:0.8rem; margin-bottom:12px;">เน้นประกวด Hackathon และค่ายคอมฯ</p>
+          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
+        </div>
+        
+        <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="font-size:2rem;">🎨</div>
+            <div>
+              <div style="font-weight:700;">ฟ้า ศิลป์ภาษา</div>
+              <div style="font-size:0.8rem; color:var(--gray-400);">ม.6 — คณะอักษรศาสตร์</div>
+            </div>
+          </div>
+          <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:90%;background:var(--accent)"></div></div>
+          <p style="font-size:0.8rem; margin-bottom:12px;">ผลงานด้านภาษา แลกเปลี่ยน และจิตอาสา</p>
+          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
+        </div>
+      </div>
     </div>
   </div>`;
 }
@@ -457,6 +516,37 @@ function deleteRoadmapItem(id) {
   saveState();
   navigate(currentPage);
 }
+
+// ========== Profile & Settings ==========
+function openProfileModal() {
+  document.getElementById('profileModal').style.display = 'flex';
+  document.getElementById('profName').value = appState.currentUser?.name || '';
+  document.getElementById('profBio').value = appState.currentUser?.bio || '';
+  document.getElementById('profGrade').value = appState.grade || 'ม.4';
+  document.getElementById('profTrack').value = appState.track || 'วิทย์-คณิต';
+  document.getElementById('profPublic').checked = !!appState.currentUser?.isPublic;
+}
+function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('profName').value;
+  const bio = document.getElementById('profBio').value;
+  const grade = document.getElementById('profGrade').value;
+  const track = document.getElementById('profTrack').value;
+  const isPublic = document.getElementById('profPublic').checked;
+  
+  if(appState.currentUser) {
+    appState.currentUser.name = name;
+    appState.currentUser.bio = bio;
+    appState.currentUser.isPublic = isPublic;
+  }
+  appState.grade = grade;
+  appState.track = track;
+  saveState();
+  updateSidebarUser();
+  closeProfileModal();
+  showNotification('อัพเดตโปรไฟล์เรียบร้อยแล้ว!', 'success');
+});
 
 // ========== Notifications ==========
 function showNotification(msg, type = 'info') {
