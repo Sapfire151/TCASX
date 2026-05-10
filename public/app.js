@@ -82,11 +82,15 @@ function renderDashboard() {
   <h3 class="section-title">🌟 กิจกรรมแนะนำประจำสัปดาห์</h3>
   <div class="dash-grid-3">
     ${(recActivities.length ? recActivities : EXPLORE_ITEMS.slice(0, 3)).map(a => `
-      <div class="card" style="cursor:pointer" onclick="addToRoadmapFromExplore(${a.id})">
+      <div class="card" style="display:flex; flex-direction:column;">
         <div style="font-size:2rem;margin-bottom:8px">${a.emoji}</div>
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:4px">${a.name}</h4>
         <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px">📅 ${a.deadline} · 🎖️ ${a.cert}</p>
-        <span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span>
+        <div style="margin-bottom:16px;"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span></div>
+        <div style="display:flex;gap:8px;flex-direction:row; margin-top:auto;">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ Roadmap</button>
+          <a href="${a.link || 'https://www.camphub.in.th/?s=' + encodeURIComponent(a.name)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 รายละเอียด</a>
+        </div>
       </div>
     `).join('')}
   </div>`;
@@ -155,7 +159,7 @@ function renderExplore() {
           </div>
           <div style="display:flex;gap:8px;flex-direction:row">
             <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
-            <a href="${a.link || 'https://www.camphub.in.th/'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 ดูรายละเอียด</a>
+            <a href="${a.link || 'https://www.camphub.in.th/?s=' + encodeURIComponent(a.name)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 ดูรายละเอียด</a>
           </div>
         </div>
       </div>
