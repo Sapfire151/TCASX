@@ -572,10 +572,10 @@ function showNotification(msg, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `custom-toast toast-${type}`;
   
-  let icon = 'ℹ️';
-  if (type === 'error') icon = '❌';
-  if (type === 'success') icon = '✅';
-  if (type === 'warning') icon = '⚠️';
+  let icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  if (type === 'error') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+  if (type === 'success') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  if (type === 'warning') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
   
   toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
   container.appendChild(toast);
@@ -588,6 +588,88 @@ function showNotification(msg, type = 'info') {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+// ========== Rate Us ==========
+function renderRate() {
+  document.getElementById('mainContent').innerHTML = `
+  <div style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
+    <div style="text-align:center; margin-bottom:32px;">
+      <h1 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">
+        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        ให้คะแนน TCASX
+      </h1>
+      <p style="color:var(--gray-400);">ความคิดเห็นของคุณมีความหมาย! ช่วยเราพัฒนา TCASX ให้ดียิ่งขึ้น</p>
+    </div>
+    
+    <div class="card" style="padding: 32px;">
+      <form id="rateForm" onsubmit="submitRate(event)">
+        <div class="form-group" style="text-align:center; margin-bottom: 24px;">
+          <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display:block;">คุณให้คะแนนเรากี่ดาว?</label>
+          <div class="star-rating" id="starRating" style="font-size: 2.5rem; color: var(--gray-300); cursor: pointer; display: flex; justify-content: center; gap: 8px;">
+            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+          </div>
+          <input type="hidden" id="rateStars" value="0" required>
+        </div>
+        
+        <div class="form-group">
+          <label>ข้อเสนอแนะเพิ่มเติม</label>
+          <textarea id="rateComment" rows="4" placeholder="บอกเราหน่อยว่าชอบอะไร หรืออยากให้ปรับปรุงอะไร..." required></textarea>
+        </div>
+        
+        <button type="submit" id="rateSubmitBtn" class="btn btn-primary btn-full">ส่งความคิดเห็น</button>
+      </form>
+    </div>
+  </div>`;
+  
+  const stars = document.querySelectorAll('#starRating span');
+  const input = document.getElementById('rateStars');
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const val = parseInt(star.dataset.val);
+      input.value = val;
+      stars.forEach((s, i) => {
+        s.style.color = i < val ? 'var(--orange)' : 'var(--gray-300)';
+      });
+    });
+  });
+}
+
+async function submitRate(e) {
+  e.preventDefault();
+  const stars = document.getElementById('rateStars').value;
+  const comment = document.getElementById('rateComment').value;
+  if (stars === "0") { showNotification('กรุณาเลือกจำนวนดาว', 'warning'); return; }
+  
+  const btn = document.getElementById('rateSubmitBtn');
+  btn.disabled = true; btn.innerText = 'กำลังส่ง...';
+  
+  const webhookUrl = 'https://discord.com/api/webhooks/1503041111969632427/IevVUfYevqaBQXW0sY_sNnJxEqsMsFTDD9rm88j_NifwFEiGyAzPvao-RoCB7ojzfUJP';
+  const payload = {
+    embeds: [{
+      title: "⭐ New TCASX Review!",
+      color: 16766720,
+      fields: [
+        { name: "User", value: appState.currentUser?.name || "Anonymous", inline: true },
+        { name: "Email", value: appState.currentUser?.username || "N/A", inline: true },
+        { name: "Rating", value: "⭐".repeat(parseInt(stars)), inline: false },
+        { name: "Comment", value: comment, inline: false }
+      ],
+      timestamp: new Date().toISOString()
+    }]
+  };
+  
+  try {
+    await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    showNotification('ส่งความคิดเห็นเรียบร้อย ขอบคุณครับ!', 'success');
+    document.getElementById('rateForm').reset();
+    document.getElementById('rateStars').value = "0";
+    document.querySelectorAll('#starRating span').forEach(s => s.style.color = 'var(--gray-300)');
+  } catch(err) {
+    showNotification('ไม่สามารถส่งข้อมูลได้', 'error');
+  } finally {
+    btn.disabled = false; btn.innerText = 'ส่งความคิดเห็น';
+  }
 }
 
 // ========== Init ==========
