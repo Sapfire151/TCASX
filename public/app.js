@@ -5,8 +5,10 @@ function navigate(page) {
   document.querySelectorAll('.nav-link,.tab-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
   const main = document.getElementById('mainContent');
   main.style.animation = 'none'; main.offsetHeight; main.style.animation = 'fadeIn .3s ease';
-  const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal, rate: renderRate };
-  (renderers[page] || renderDashboard)();
+  try {
+    const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal, rate: renderRate };
+    (renderers[page] || renderDashboard)();
+  } catch(e) { console.error('Navigate error:', e); renderDashboard(); }
 }
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); }));
 
@@ -256,6 +258,70 @@ async function loadPublicUsers() {
     if (grid) grid.innerHTML = '<p style="grid-column: 1/-1; color:var(--red); text-align:center;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
     console.error("Error loading public users:", e);
   }
+}
+
+// ========== Rate Us ==========
+function renderRate() {
+  document.getElementById('mainContent').innerHTML = `
+  <div style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
+    <div style="text-align:center; margin-bottom:32px;">
+      <h1 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">
+        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        ให้คะแนน TCASX
+      </h1>
+      <p style="color:var(--gray-400);">ความคิดเห็นของคุณมีความหมาย! ช่วยเราพัฒนา TCASX ให้ดียิ่งขึ้น</p>
+    </div>
+    <div class="card" style="padding: 32px;">
+      <form id="rateForm" onsubmit="submitRate(event)">
+        <div class="form-group" style="text-align:center; margin-bottom: 24px;">
+          <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display:block;">คุณให้คะแนนเรากี่ดาว?</label>
+          <div class="star-rating" id="starRating" style="font-size: 2.5rem; color: var(--gray-300); cursor: pointer; display: flex; justify-content: center; gap: 8px;">
+            <span data-val="1" onmouseenter="hoverStars(1)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="2" onmouseenter="hoverStars(2)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="3" onmouseenter="hoverStars(3)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="4" onmouseenter="hoverStars(4)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="5" onmouseenter="hoverStars(5)" onmouseleave="resetStarHover()">&#9733;</span>
+          </div>
+          <input type="hidden" id="rateStars" value="0">
+        </div>
+        <div class="form-group">
+          <label>ข้อเสนอแนะเพิ่มเติม</label>
+          <textarea id="rateComment" rows="4" placeholder="บอกเราหน่อยว่าชอบอะไร หรืออยากให้ปรับปรุงอะไร..." required></textarea>
+        </div>
+        <button type="submit" id="rateSubmitBtn" class="btn btn-primary btn-full">ส่งความคิดเห็น</button>
+      </form>
+    </div>
+  </div>`;
+  document.querySelectorAll('#starRating span').forEach(star => {
+    star.addEventListener('click', () => {
+      const val = parseInt(star.dataset.val);
+      document.getElementById('rateStars').value = val;
+      document.querySelectorAll('#starRating span').forEach((s, i) => s.style.color = i < val ? 'var(--orange)' : 'var(--gray-300)');
+    });
+  });
+}
+let _selectedStars = 0;
+function hoverStars(n) { document.querySelectorAll('#starRating span').forEach((s, i) => s.style.color = i < n ? 'var(--orange)' : 'var(--gray-300)'); }
+function resetStarHover() { const v = parseInt(document.getElementById('rateStars')?.value || 0); document.querySelectorAll('#starRating span').forEach((s, i) => s.style.color = i < v ? 'var(--orange)' : 'var(--gray-300)'); }
+
+async function submitRate(e) {
+  e.preventDefault();
+  const stars = document.getElementById('rateStars').value;
+  const comment = document.getElementById('rateComment').value;
+  if (stars === "0") { showNotification('กรุณาเลือกจำนวนดาว', 'warning'); return; }
+  const btn = document.getElementById('rateSubmitBtn');
+  btn.disabled = true; btn.innerText = 'กำลังส่ง...';
+  const webhookUrl = 'https://discord.com/api/webhooks/1503041111969632427/IevVUfYevqaBQXW0sY_sNnJxEqsMsFTDD9rm88j_NifwFEiGyAzPvao-RoCB7ojzfUJP';
+  const payload = { embeds: [{ title: "New TCASX Review", color: 16766720, fields: [
+    { name: "User", value: appState.currentUser?.name || "Anonymous", inline: true },
+    { name: "Email", value: appState.currentUser?.username || "N/A", inline: true },
+    { name: "Rating", value: String.fromCodePoint(11088).repeat(parseInt(stars)), inline: false },
+    { name: "Comment", value: comment, inline: false }
+  ], timestamp: new Date().toISOString() }] };
+  try {
+    await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    showNotification('ส่งความคิดเห็นเรียบร้อย ขอบคุณครับ!', 'success');
+    document.getElementById('rateForm').reset();
+    document.getElementById('rateStars').value = "0";
+    document.querySelectorAll('#starRating span').forEach(s => s.style.color = 'var(--gray-300)');
+  } catch(err) { showNotification('ไม่สามารถส่งข้อมูลได้', 'error'); }
+  finally { btn.disabled = false; btn.innerText = 'ส่งความคิดเห็น'; }
 }
 
 // ========== Auth Logic ==========
@@ -590,87 +656,7 @@ function showNotification(msg, type = 'info') {
   }, 3000);
 }
 
-// ========== Rate Us ==========
-function renderRate() {
-  document.getElementById('mainContent').innerHTML = `
-  <div style="max-width: 600px; margin: 0 auto; padding-top: 40px;">
-    <div style="text-align:center; margin-bottom:32px;">
-      <h1 style="font-size:1.8rem; font-weight:800; margin-bottom:8px;">
-        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        ให้คะแนน TCASX
-      </h1>
-      <p style="color:var(--gray-400);">ความคิดเห็นของคุณมีความหมาย! ช่วยเราพัฒนา TCASX ให้ดียิ่งขึ้น</p>
-    </div>
-    
-    <div class="card" style="padding: 32px;">
-      <form id="rateForm" onsubmit="submitRate(event)">
-        <div class="form-group" style="text-align:center; margin-bottom: 24px;">
-          <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display:block;">คุณให้คะแนนเรากี่ดาว?</label>
-          <div class="star-rating" id="starRating" style="font-size: 2.5rem; color: var(--gray-300); cursor: pointer; display: flex; justify-content: center; gap: 8px;">
-            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
-          </div>
-          <input type="hidden" id="rateStars" value="0" required>
-        </div>
-        
-        <div class="form-group">
-          <label>ข้อเสนอแนะเพิ่มเติม</label>
-          <textarea id="rateComment" rows="4" placeholder="บอกเราหน่อยว่าชอบอะไร หรืออยากให้ปรับปรุงอะไร..." required></textarea>
-        </div>
-        
-        <button type="submit" id="rateSubmitBtn" class="btn btn-primary btn-full">ส่งความคิดเห็น</button>
-      </form>
-    </div>
-  </div>`;
-  
-  const stars = document.querySelectorAll('#starRating span');
-  const input = document.getElementById('rateStars');
-  stars.forEach(star => {
-    star.addEventListener('click', () => {
-      const val = parseInt(star.dataset.val);
-      input.value = val;
-      stars.forEach((s, i) => {
-        s.style.color = i < val ? 'var(--orange)' : 'var(--gray-300)';
-      });
-    });
-  });
-}
 
-async function submitRate(e) {
-  e.preventDefault();
-  const stars = document.getElementById('rateStars').value;
-  const comment = document.getElementById('rateComment').value;
-  if (stars === "0") { showNotification('กรุณาเลือกจำนวนดาว', 'warning'); return; }
-  
-  const btn = document.getElementById('rateSubmitBtn');
-  btn.disabled = true; btn.innerText = 'กำลังส่ง...';
-  
-  const webhookUrl = 'https://discord.com/api/webhooks/1503041111969632427/IevVUfYevqaBQXW0sY_sNnJxEqsMsFTDD9rm88j_NifwFEiGyAzPvao-RoCB7ojzfUJP';
-  const payload = {
-    embeds: [{
-      title: "⭐ New TCASX Review!",
-      color: 16766720,
-      fields: [
-        { name: "User", value: appState.currentUser?.name || "Anonymous", inline: true },
-        { name: "Email", value: appState.currentUser?.username || "N/A", inline: true },
-        { name: "Rating", value: "⭐".repeat(parseInt(stars)), inline: false },
-        { name: "Comment", value: comment, inline: false }
-      ],
-      timestamp: new Date().toISOString()
-    }]
-  };
-  
-  try {
-    await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    showNotification('ส่งความคิดเห็นเรียบร้อย ขอบคุณครับ!', 'success');
-    document.getElementById('rateForm').reset();
-    document.getElementById('rateStars').value = "0";
-    document.querySelectorAll('#starRating span').forEach(s => s.style.color = 'var(--gray-300)');
-  } catch(err) {
-    showNotification('ไม่สามารถส่งข้อมูลได้', 'error');
-  } finally {
-    btn.disabled = false; btn.innerText = 'ส่งความคิดเห็น';
-  }
-}
 
 // ========== Init ==========
 loadExternalData().then(() => {
