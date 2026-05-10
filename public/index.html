@@ -123,14 +123,23 @@
             </svg>
             <span>Roadmap</span>
           </a></li>
+        <li><a href="#" data-page="global" class="nav-link">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+            <span>Global</span>
+          </a></li>
       </ul>
       <div class="sidebar-footer" style="flex-direction:column; align-items:flex-start; gap:12px;">
         <div style="display:flex; align-items:center; gap:10px; width:100%;">
           <div class="user-avatar">🎓</div>
-          <div class="user-info">
+          <div class="user-info" style="flex: 1; cursor: pointer;" onclick="openProfileModal()">
             <span class="user-name" id="sidebarUserName">นักเรียน</span>
             <span class="user-level" id="sidebarUserLevel">ม.5 — สายวิทย์</span>
           </div>
+          <svg onclick="openProfileModal()" style="cursor: pointer; color: var(--gray-400);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </div>
         <button class="btn btn-outline btn-sm btn-full" onclick="logout()">ออกจากระบบ</button>
       </div>
@@ -171,6 +180,14 @@
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
         </svg>
         <span>Roadmap</span>
+      </a>
+      <a href="#" data-page="global" class="tab-link">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        <span>Global</span>
       </a>
     </nav>
   </div>
@@ -252,6 +269,53 @@
           <textarea id="actDesc" rows="3" placeholder="อธิบายสิ่งที่ทำ ผลลัพธ์ที่ได้..."></textarea>
         </div>
         <button type="submit" class="btn btn-primary btn-full">บันทึกกิจกรรม</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PROFILE SETTINGS MODAL -->
+  <div id="profileModal" class="modal-overlay" style="display:none">
+    <div class="modal-container activity-modal">
+      <div class="modal-header">
+        <h2>ปรับแต่งโปรไฟล์</h2>
+        <button class="modal-close" onclick="closeProfileModal()">&times;</button>
+      </div>
+      <form id="profileForm" class="activity-form">
+        <div class="form-group">
+          <label>ชื่อที่แสดงผล</label>
+          <input type="text" id="profName" placeholder="ชื่อของคุณ" required>
+        </div>
+        <div class="form-group">
+          <label>แนะนำตัวสั้นๆ (Bio)</label>
+          <textarea id="profBio" rows="2" placeholder="อธิบายเกี่ยวกับตัวคุณและความสนใจ..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ชั้นปี</label>
+            <select id="profGrade">
+              <option value="ม.4">ม.4</option>
+              <option value="ม.5">ม.5</option>
+              <option value="ม.6">ม.6</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>สายการเรียน</label>
+            <select id="profTrack">
+              <option value="วิทย์-คณิต">วิทย์-คณิต</option>
+              <option value="ศิลป์-คำนวณ">ศิลป์-คำนวณ</option>
+              <option value="ศิลป์-ภาษา">ศิลป์-ภาษา</option>
+              <option value="ศิลป์-สังคม">ศิลป์-สังคม</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="profPublic" style="width:auto;accent-color:var(--primary);">
+            เปิดพอร์ตฟอลิโอเป็นสาธารณะ (Global)
+          </label>
+          <p style="font-size:0.8rem;color:var(--gray-400);margin-top:4px;">คนอื่นจะสามารถดูพอร์ตฟอลิโอของคุณเพื่อเป็นแรงบันดาลใจได้</p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">บันทึกการเปลี่ยนแปลง</button>
       </form>
     </div>
   </div>
