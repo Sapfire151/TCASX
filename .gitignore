@@ -72,3 +72,11 @@ node_modules/
 *.sqlite
 *.sqlite3
 *.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
