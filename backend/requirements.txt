@@ -1,0 +1,5 @@
+flask==3.1.1
+flask-cors==5.0.1
+camp_parser==1.1.1
+beautifulsoup4==4.14.3
+requests==2.33.1
