@@ -182,7 +182,11 @@ function renderRoadmap() {
       const st = it.status || 'planned';
       const catColor = { academic: 'var(--cat-academic)', volunteer: 'var(--cat-volunteer)', leadership: 'var(--cat-leadership)', sport_art: 'var(--cat-sport)', language: 'var(--cat-language)' }[it.type] || 'var(--gray-400)';
       const isDeadlineSoon = it.month && it.month === now + 1;
-      return `<div class="roadmap-block status-${st}" style="background:${getCatBg(it.type)};border-color:${catColor}">${it.name}${isDeadlineSoon && st === 'planned' ? '<span class="deadline-badge">ใกล้ถึง!</span>' : ''}</div>`;
+      const isActivity = it.date !== undefined;
+      return `<div class="roadmap-block status-${st}" style="background:${getCatBg(it.type)};border-color:${catColor}">
+        <div style="padding-right:12px;">${it.name}${isDeadlineSoon && st === 'planned' ? '<span class="deadline-badge">ใกล้ถึง!</span>' : ''}</div>
+        <button class="roadmap-delete-btn" onclick="event.stopPropagation(); ${isActivity ? `deleteActivity(${it.id})` : `deleteRoadmapItem(${it.id})`}" title="ลบ">✕</button>
+      </div>`;
     }).join('')}${items.length === 0 ? '<div style="font-size:.7rem;color:var(--gray-300);text-align:center;padding:8px">—</div>' : ''}</div>
         </div>`;
   }).join('')}
@@ -228,7 +232,7 @@ async function handleAuth(e) {
     if (error.code === 'auth/email-already-in-use') msg = 'อีเมลนี้ถูกใช้งานแล้ว';
     if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') msg = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
     if (error.code === 'auth/weak-password') msg = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-    alert("เกิดข้อผิดพลาด: " + msg);
+    showNotification("เกิดข้อผิดพลาด: " + msg, 'error');
   }
 }
 
@@ -238,7 +242,7 @@ async function loginWithGoogle() {
     const result = await auth.signInWithPopup(provider);
     await completeLogin(result.user);
   } catch (error) {
-    alert("Google Sign In Error: " + error.message);
+    showNotification("Google Sign In Error: " + error.message, 'error');
   }
 }
 
@@ -397,7 +401,7 @@ function renderSelectedFaculties() {
 function selectFacultyFromDropdown(id) {
   if (!appState.faculties.includes(id)) {
     if (appState.faculties.length >= 3) {
-      alert('เลือกคณะเป้าหมายได้สูงสุด 3 คณะ');
+      showNotification('เลือกคณะเป้าหมายได้สูงสุด 3 คณะ', 'warning');
     } else {
       appState.faculties.push(id);
       saveState();
@@ -435,14 +439,50 @@ document.getElementById('activityForm').addEventListener('submit', e => {
 function deleteActivity(id) { appState.activities = appState.activities.filter(a => a.id !== id); saveState(); navigate(currentPage); }
 function addToRoadmapFromExplore(eid) {
   const item = EXPLORE_ITEMS.find(e => e.id === eid);
-  if (!item || appState.roadmap.find(r => r.name === item.name)) { alert(item ? 'มีในแผนแล้ว!' : 'ไม่พบกิจกรรม'); return; }
+  if (!item || appState.roadmap.find(r => r.name === item.name)) { showNotification(item ? 'มีในแผนแล้ว!' : 'ไม่พบกิจกรรม', 'warning'); return; }
   appState.roadmap.push({ id: Date.now(), name: item.name, type: item.type, month: item.month, status: 'planned' });
-  saveState(); alert('✅ เพิ่มใน Roadmap แล้ว!');
+  saveState(); showNotification('เพิ่มใน Roadmap แล้ว!', 'success');
 }
 
 // File upload area
 const fua = document.getElementById('fileUploadArea');
 if (fua) { fua.addEventListener('click', () => document.getElementById('actCert').click()); }
+
+function deleteRoadmapItem(id) {
+  appState.roadmap = appState.roadmap.filter(r => r.id !== id);
+  saveState();
+  navigate(currentPage);
+}
+
+// ========== Notifications ==========
+function showNotification(msg, type = 'info') {
+  let container = document.getElementById('notification-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'notification-container';
+    document.body.appendChild(container);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = `custom-toast toast-${type}`;
+  
+  let icon = 'ℹ️';
+  if (type === 'error') icon = '❌';
+  if (type === 'success') icon = '✅';
+  if (type === 'warning') icon = '⚠️';
+  
+  toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
+  container.appendChild(toast);
+  
+  // force reflow
+  toast.offsetHeight;
+  
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
 // ========== Init ==========
 loadExternalData().then(() => {
