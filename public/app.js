@@ -153,9 +153,9 @@ function renderExplore() {
           <div class="explore-card-meta">
             <span>📅 ${a.deadline}</span><span>👥 ${a.spots} คน</span><span>🎖️ ระดับ${a.cert}</span>
           </div>
-          <div style="display:flex;gap:8px;flex-direction:column">
-            ${a.link ? `<a href="${a.link}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm btn-full" style="text-decoration:none">🔗 ดูรายละเอียด</a>` : ''}
-            <button class="btn btn-primary btn-sm btn-full" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
+          <div style="display:flex;gap:8px;flex-direction:row">
+            <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
+            <a href="${a.link || 'https://www.camphub.in.th/'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 ดูรายละเอียด</a>
           </div>
         </div>
       </div>
