@@ -42,7 +42,7 @@ function renderDashboard() {
   <div class="dashboard-hero">
     <div class="hero-content">
       <div class="hero-left">
-        <h1>🎯 พร้อมลุย TCAS รอบ 1!</h1>
+        <h1 style="display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> พร้อมลุย TCAS รอบ 1!</h1>
         <p>เตรียมพอร์ตฟอลิโอให้ปังก่อนเปิดรับสมัคร</p>
         <div class="countdown-display">
           <div class="countdown-item"><span class="countdown-num">${cd.days}</span><span class="countdown-label">วัน</span></div>
@@ -58,20 +58,20 @@ function renderDashboard() {
     <button class="quick-btn" onclick="navigate('portfolio')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> My Portfolio</button>
     <button class="quick-btn" onclick="navigate('explore')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Explore</button>
     <button class="quick-btn" onclick="navigate('roadmap')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Roadmap</button>
-    <button class="quick-btn" onclick="showOnboarding()">⚙️ ตั้งเป้าหมาย</button>
+    <button class="quick-btn" onclick="showOnboarding()"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> ตั้งเป้าหมาย</button>
   </div>
 
   <div class="dash-grid">
     <div class="ai-card">
       <h3>AI Matching — ${fac ? fac.name + ' ' + fac.uni : 'ยังไม่ได้เลือกคณะ'}</h3>
-      <div class="ai-item"><span class="ai-icon">✅</span><div><strong>คณะต้องการ:</strong> ${fac ? Object.entries(reqs).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') : 'กรุณาเลือกคณะเป้าหมาย'}</div></div>
-      <div class="ai-item"><span class="ai-icon">📊</span><div><strong>คุณมีอยู่:</strong> ${Object.entries(scores).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') || 'ยังไม่มีกิจกรรม'}</div></div>
-      <div class="ai-item"><span class="ai-icon">🔴</span><div><strong>ยังขาด:</strong> ${gaps.length ? gaps.map(k => TYPE_LABELS[k]).join(', ') : 'ครบแล้ว! 🎉'}</div></div>
-      <div class="ai-item"><span class="ai-icon">💡</span><div><strong>แนะนำ:</strong> ${recActivities.length ? recActivities.map(a => a.name).join(', ') : 'ไม่มีกิจกรรมแนะนำเพิ่มเติม'}</div></div>
+      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span><div><strong>คณะต้องการ:</strong> ${fac ? Object.entries(reqs).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') : 'กรุณาเลือกคณะเป้าหมาย'}</div></div>
+      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></span><div><strong>คุณมีอยู่:</strong> ${Object.entries(scores).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') || 'ยังไม่มีกิจกรรม'}</div></div>
+      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; color:var(--red);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></span><div><strong>ยังขาด:</strong> ${gaps.length ? gaps.map(k => TYPE_LABELS[k]).join(', ') : 'ครบแล้ว! <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'}</div></div>
+      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A6 6 0 1 0 7.5 11.5c.76.76 1.23 1.52 1.41 2.5"></path></svg></span><div><strong>แนะนำ:</strong> ${recActivities.length ? recActivities.map(a => a.name).join(', ') : 'ไม่มีกิจกรรมแนะนำเพิ่มเติม'}</div></div>
     </div>
 
     <div>
-      <h3 class="section-title" style="margin-bottom:12px">📈 คะแนนตามหมวด</h3>
+      <h3 class="section-title" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> คะแนนตามหมวด</h3>
       ${Object.keys(TYPE_LABELS).map(k => {
     const s = scores[k] || 0, r = reqs[k] || 1, p = Math.min(100, Math.round((s / Math.max(r, 1)) * 100));
     return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}</span><span style="font-weight:700;color:${p >= 100 ? 'var(--green)' : 'var(--gray-600)'}">${s}/${r}</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${p}%;background:${p >= 100 ? 'var(--green)' : 'var(--primary)'}"></div></div></div>`;
@@ -79,17 +79,17 @@ function renderDashboard() {
     </div>
   </div>
 
-  <h3 class="section-title">🌟 กิจกรรมแนะนำประจำสัปดาห์</h3>
+  <h3 class="section-title" style="display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> กิจกรรมแนะนำประจำสัปดาห์</h3>
   <div class="dash-grid-3">
     ${(recActivities.length ? recActivities : EXPLORE_ITEMS.slice(0, 3)).map(a => `
       <div class="card" style="display:flex; flex-direction:column;">
         <div style="font-size:2rem;margin-bottom:8px">${a.emoji}</div>
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:4px">${a.name}</h4>
-        <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px">📅 ${a.deadline} · 🎖️ ${a.cert}</p>
+        <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${a.deadline} · <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg> ${a.cert}</p>
         <div style="margin-bottom:16px;"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span></div>
         <div style="display:flex;gap:8px;flex-direction:row; margin-top:auto;">
           <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ Roadmap</button>
-          <a href="${a.link || 'https://www.camphub.in.th/?s=' + encodeURIComponent(a.name)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 รายละเอียด</a>
+          <a href="${a.link || '#'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> รายละเอียด</a>
         </div>
       </div>
     `).join('')}
@@ -106,7 +106,7 @@ function renderPortfolio() {
 
   document.getElementById('mainContent').innerHTML = `
   <div class="portfolio-header">
-    <h1 style="font-size:1.4rem;font-weight:800">📁 My Portfolio</h1>
+    <h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> My Portfolio</h1>
     <button class="btn btn-primary" onclick="openActivityModal()">+ เพิ่มกิจกรรม</button>
   </div>
   <div class="portfolio-tabs" style="margin-bottom:20px">
@@ -117,18 +117,18 @@ function renderPortfolio() {
   <div class="score-section">
     <div class="card score-ring-card">${progressRingSVG(getCompletionPct(), 130, 10)}<p style="margin-top:12px;font-size:.85rem;color:var(--gray-400)">ความสมบูรณ์ของพอร์ต</p></div>
     <div>
-      ${gaps.length ? `<div class="gap-panel"><h3>⚠️ ยังขาด</h3>${gaps.map(k => `<div class="gap-item">🔴 ${TYPE_LABELS[k]} — ต้องการเพิ่มอีก ${Math.max(0, reqs[k] - (scores[k] || 0))} คะแนน</div>`).join('')}</div>` : ''}
-      ${strongs.length ? `<div class="strength-panel" style="margin-top:12px"><h3>💪 จุดแข็ง</h3>${strongs.map(k => `<div class="gap-item" style="color:#065F46">✅ ${TYPE_LABELS[k]} — ผ่านเกณฑ์แล้ว</div>`).join('')}</div>` : ''}
+      ${gaps.length ? `<div class="gap-panel"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ยังขาด</h3>${gaps.map(k => `<div class="gap-item"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; color:var(--red);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> ${TYPE_LABELS[k]} — ต้องการเพิ่มอีก ${Math.max(0, reqs[k] - (scores[k] || 0))} คะแนน</div>`).join('')}</div>` : ''}
+      ${strongs.length ? `<div class="strength-panel" style="margin-top:12px"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> จุดแข็ง</h3>${strongs.map(k => `<div class="gap-item" style="color:#065F46"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${TYPE_LABELS[k]} — ผ่านเกณฑ์แล้ว</div>`).join('')}</div>` : ''}
     </div>
   </div>
-  <h3 class="section-title">📝 รายการกิจกรรม</h3>
+  <h3 class="section-title" style="display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> รายการกิจกรรม</h3>
   <div class="portfolio-list">
     ${filtered.length ? filtered.map(a => `
       <div class="activity-card">
         <div class="activity-icon" style="background:${getCatBg(a.type)}">${TYPE_EMOJIS[a.type]}</div>
         <div class="activity-info"><h4>${a.name}</h4><p>${LEVEL_LABELS[a.level]} · ${STATUS_LABELS[a.status]}${a.desc ? ' · ' + a.desc : ''}</p></div>
         <div class="activity-meta"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span><br><span class="date">${a.date || ''}</span></div>
-        <button class="btn btn-sm btn-secondary" onclick="deleteActivity(${a.id})" title="ลบ">🗑️</button>
+        <button class="btn btn-sm btn-secondary" onclick="deleteActivity(${a.id})" title="ลบ"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
       </div>
     `).join('') : `<div class="empty-state"><h3>ยังไม่มีกิจกรรม</h3><p>เริ่มเพิ่มกิจกรรมเพื่อสร้างพอร์ตฟอลิโอของคุณ</p><button class="btn btn-primary" onclick="openActivityModal()">+ เพิ่มกิจกรรม</button></div>`}
   </div>`;
@@ -140,7 +140,7 @@ let exploreFilter = 'all';
 function renderExplore() {
   const items = exploreFilter === 'all' ? EXPLORE_ITEMS : EXPLORE_ITEMS.filter(e => e.type === exploreFilter);
   document.getElementById('mainContent').innerHTML = `
-  <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:4px">🔍 Explore</h1>
+  <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:4px"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Explore</h1>
   <p style="color:var(--gray-400);margin-bottom:20px;font-size:.9rem">ค้นหาค่าย การแข่งขัน และกิจกรรมจิตอาสาที่เหมาะกับคุณ</p>
   <div class="explore-filters">
     ${[['all', 'ทั้งหมด'], ...Object.entries(TYPE_LABELS)].map(([k, v]) =>
@@ -155,11 +155,11 @@ function renderExplore() {
           <span class="tag tag-${a.type}" style="margin-bottom:8px">${TYPE_LABELS[a.type]}</span>
           <h3>${a.name}</h3>
           <div class="explore-card-meta">
-            <span>📅 ${a.deadline}</span><span>👥 ${a.spots} คน</span><span>🎖️ ระดับ${a.cert}</span>
+            <span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${a.deadline}</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> ${a.spots} คน</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg> ระดับ${a.cert}</span>
           </div>
           <div style="display:flex;gap:8px;flex-direction:row">
             <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
-            <a href="${a.link || 'https://www.camphub.in.th/?s=' + encodeURIComponent(a.name)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;">🔗 ดูรายละเอียด</a>
+            <a href="${a.link || '#'}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1; text-decoration:none; display:flex; justify-content:center; align-items:center;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> ดูรายละเอียด</a>
           </div>
         </div>
       </div>
@@ -173,7 +173,7 @@ function renderRoadmap() {
   const now = new Date().getMonth();
   document.getElementById('mainContent').innerHTML = `
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-    <div><h1 style="font-size:1.4rem;font-weight:800">🗺️ Roadmap</h1><p style="color:var(--gray-400);font-size:.85rem">แผนกิจกรรมตลอดทั้งปี</p></div>
+    <div><h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg> Roadmap</h1><p style="color:var(--gray-400);font-size:.85rem">แผนกิจกรรมตลอดทั้งปี</p></div>
     <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ เพิ่มกิจกรรม</button>
   </div>
   <div class="roadmap-container">
