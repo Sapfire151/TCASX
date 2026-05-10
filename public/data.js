@@ -48,24 +48,46 @@ const STATUS_LABELS = {
 
 const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
-// ---- Faculties (matches backend /api/faculties) ----
+// ---- Faculties (fallback — overwritten by API) ----
 let FACULTIES = [
-  { id: 'eng_chula', name: 'วิศวกรรมศาสตร์', uni: 'จุฬาฯ', emoji: '⚙️',
-    req: { academic: 3, volunteer: 1, leadership: 1, sport_art: 0, language: 1 } },
-  { id: 'med_chula', name: 'แพทยศาสตร์', uni: 'จุฬาฯ', emoji: '🩺',
-    req: { academic: 3, volunteer: 2, leadership: 1, sport_art: 0, language: 1 } },
-  { id: 'eng_tu', name: 'วิศวกรรมศาสตร์', uni: 'มธ.', emoji: '🔧',
-    req: { academic: 2, volunteer: 1, leadership: 0, sport_art: 1, language: 0 } },
-  { id: 'sci_mu', name: 'วิทยาศาสตร์', uni: 'มหิดล', emoji: '🔬',
-    req: { academic: 3, volunteer: 1, leadership: 0, sport_art: 0, language: 1 } },
-  { id: 'cs_kmitl', name: 'เทคโนโลยีสารสนเทศ', uni: 'สจล.', emoji: '💻',
-    req: { academic: 2, volunteer: 1, leadership: 0, sport_art: 0, language: 0 } },
-  { id: 'eng_ku', name: 'วิศวกรรมศาสตร์', uni: 'มก.', emoji: '🏗️',
-    req: { academic: 2, volunteer: 1, leadership: 1, sport_art: 0, language: 0 } },
-  { id: 'arts_cu', name: 'อักษรศาสตร์', uni: 'จุฬาฯ', emoji: '📖',
-    req: { academic: 1, volunteer: 1, leadership: 0, sport_art: 0, language: 3 } },
-  { id: 'polsci_tu', name: 'รัฐศาสตร์', uni: 'มธ.', emoji: '🏛️',
-    req: { academic: 0, volunteer: 2, leadership: 2, sport_art: 0, language: 1 } },
+  // จุฬาฯ
+  { id:'eng_cu', name:'คณะวิศวกรรมศาสตร์', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'⚙️', req:{academic:3,volunteer:1,leadership:1,sport_art:0,language:1} },
+  { id:'med_cu', name:'คณะแพทยศาสตร์', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'🩺', req:{academic:3,volunteer:2,leadership:1,sport_art:0,language:1} },
+  { id:'sci_cu', name:'คณะวิทยาศาสตร์', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'🔬', req:{academic:3,volunteer:1,leadership:0,sport_art:0,language:1} },
+  { id:'arts_cu', name:'คณะอักษรศาสตร์', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'📖', req:{academic:1,volunteer:1,leadership:0,sport_art:0,language:3} },
+  { id:'acc_cu', name:'คณะพาณิชยศาสตร์และการบัญชี', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'📊', req:{academic:2,volunteer:0,leadership:2,sport_art:0,language:1} },
+  { id:'arch_cu', name:'คณะสถาปัตยกรรมศาสตร์', uni:'จุฬาลงกรณ์มหาวิทยาลัย', emoji:'🏛️', req:{academic:1,volunteer:1,leadership:0,sport_art:3,language:0} },
+  // ธรรมศาสตร์
+  { id:'eng_tu', name:'คณะวิศวกรรมศาสตร์', uni:'มหาวิทยาลัยธรรมศาสตร์', emoji:'🔧', req:{academic:2,volunteer:1,leadership:0,sport_art:1,language:0} },
+  { id:'law_tu', name:'คณะนิติศาสตร์', uni:'มหาวิทยาลัยธรรมศาสตร์', emoji:'⚖️', req:{academic:2,volunteer:0,leadership:2,sport_art:0,language:1} },
+  { id:'polsci_tu', name:'คณะรัฐศาสตร์', uni:'มหาวิทยาลัยธรรมศาสตร์', emoji:'🏛️', req:{academic:0,volunteer:2,leadership:2,sport_art:0,language:1} },
+  { id:'econ_tu', name:'คณะเศรษฐศาสตร์', uni:'มหาวิทยาลัยธรรมศาสตร์', emoji:'💹', req:{academic:2,volunteer:0,leadership:1,sport_art:0,language:2} },
+  { id:'comm_tu', name:'คณะวารสารศาสตร์ฯ', uni:'มหาวิทยาลัยธรรมศาสตร์', emoji:'📰', req:{academic:0,volunteer:1,leadership:0,sport_art:2,language:2} },
+  // มหิดล
+  { id:'med_mu', name:'คณะแพทยศาสตร์ศิริราช', uni:'มหาวิทยาลัยมหิดล', emoji:'🩺', req:{academic:3,volunteer:2,leadership:1,sport_art:0,language:0} },
+  { id:'sci_mu', name:'คณะวิทยาศาสตร์', uni:'มหาวิทยาลัยมหิดล', emoji:'🔬', req:{academic:3,volunteer:1,leadership:0,sport_art:0,language:1} },
+  { id:'ict_mu', name:'คณะ ICT', uni:'มหาวิทยาลัยมหิดล', emoji:'💻', req:{academic:2,volunteer:0,leadership:0,sport_art:1,language:1} },
+  { id:'nurse_mu', name:'คณะพยาบาลศาสตร์', uni:'มหาวิทยาลัยมหิดล', emoji:'💉', req:{academic:2,volunteer:3,leadership:0,sport_art:0,language:0} },
+  // สจล.
+  { id:'eng_kmitl', name:'คณะวิศวกรรมศาสตร์', uni:'สจล.', emoji:'⚙️', req:{academic:3,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'cs_kmitl', name:'คณะเทคโนโลยีสารสนเทศ', uni:'สจล.', emoji:'💻', req:{academic:2,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'arch_kmitl', name:'คณะสถาปัตยกรรมศาสตร์', uni:'สจล.', emoji:'🏗️', req:{academic:1,volunteer:0,leadership:0,sport_art:3,language:0} },
+  // เกษตรศาสตร์
+  { id:'eng_ku', name:'คณะวิศวกรรมศาสตร์', uni:'มหาวิทยาลัยเกษตรศาสตร์', emoji:'⚙️', req:{academic:2,volunteer:1,leadership:1,sport_art:0,language:0} },
+  { id:'sci_ku', name:'คณะวิทยาศาสตร์', uni:'มหาวิทยาลัยเกษตรศาสตร์', emoji:'🔬', req:{academic:2,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'agri_ku', name:'คณะเกษตร', uni:'มหาวิทยาลัยเกษตรศาสตร์', emoji:'🌾', req:{academic:2,volunteer:2,leadership:0,sport_art:0,language:0} },
+  // มจธ.
+  { id:'eng_kmutt', name:'คณะวิศวกรรมศาสตร์', uni:'มจธ.', emoji:'⚙️', req:{academic:3,volunteer:0,leadership:1,sport_art:0,language:0} },
+  { id:'sci_kmutt', name:'คณะวิทยาศาสตร์', uni:'มจธ.', emoji:'🔬', req:{academic:2,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'it_kmutt', name:'คณะเทคโนโลยีสารสนเทศ', uni:'มจธ.', emoji:'💻', req:{academic:2,volunteer:0,leadership:0,sport_art:1,language:0} },
+  // เชียงใหม่
+  { id:'eng_cmu', name:'คณะวิศวกรรมศาสตร์', uni:'มหาวิทยาลัยเชียงใหม่', emoji:'⚙️', req:{academic:2,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'med_cmu', name:'คณะแพทยศาสตร์', uni:'มหาวิทยาลัยเชียงใหม่', emoji:'🩺', req:{academic:3,volunteer:2,leadership:1,sport_art:0,language:0} },
+  { id:'masscomm_cmu', name:'คณะการสื่อสารมวลชน', uni:'มหาวิทยาลัยเชียงใหม่', emoji:'📺', req:{academic:0,volunteer:0,leadership:0,sport_art:2,language:2} },
+  // ขอนแก่น
+  { id:'eng_kku', name:'คณะวิศวกรรมศาสตร์', uni:'มหาวิทยาลัยขอนแก่น', emoji:'⚙️', req:{academic:2,volunteer:1,leadership:0,sport_art:0,language:0} },
+  { id:'med_kku', name:'คณะแพทยศาสตร์', uni:'มหาวิทยาลัยขอนแก่น', emoji:'🩺', req:{academic:3,volunteer:2,leadership:0,sport_art:0,language:0} },
+  { id:'edu_kku', name:'คณะศึกษาศาสตร์', uni:'มหาวิทยาลัยขอนแก่น', emoji:'📚', req:{academic:0,volunteer:2,leadership:2,sport_art:0,language:0} },
 ];
 
 // ---- Explore Items (populated from API) ----
@@ -142,31 +164,37 @@ function getCompletionPct() {
 }
 
 // ---- Load Data from Flask API ----
+const EXPIRED_KEYWORDS = ['ปิดรับสมัครแล้ว', 'หมดเขต', 'ปิดรับแล้ว', 'สิ้นสุดแล้ว'];
+function isExpired(deadline) {
+  return EXPIRED_KEYWORDS.some(kw => (deadline || '').includes(kw));
+}
+
 async function loadExternalData() {
   try {
-    // Fetch activities from backend
     const res = await fetch(`${API_BASE}/activities`, { signal: AbortSignal.timeout(10000) });
     if (res.ok) {
       const apiActivities = await res.json();
-      EXPLORE_ITEMS = apiActivities.map((a, i) => ({
-        id: a.id || i + 1,
-        name: a.name,
-        type: a.type,
-        emoji: TYPE_EMOJIS[a.type] || '📌',
-        deadline: a.deadline || 'ไม่ระบุ',
-        spots: a.spots || 50,
-        cert: a.level_th || 'ประเทศ',
-        month: a.month || new Date().getMonth() + 1,
-        link: a.link || '',
-        image: a.image || ''
-      }));
-      console.log(`[TCASX] Loaded ${EXPLORE_ITEMS.length} activities from API`);
+      EXPLORE_ITEMS = apiActivities
+        .filter(a => !isExpired(a.deadline))
+        .map((a, i) => ({
+          id: a.id || i + 1,
+          name: a.name,
+          type: a.type,
+          emoji: TYPE_EMOJIS[a.type] || '📌',
+          deadline: a.deadline || 'ไม่ระบุ',
+          spots: a.spots || 50,
+          cert: a.level_th || 'ประเทศ',
+          month: a.month || new Date().getMonth() + 1,
+          link: a.link || '',
+          image: a.image || ''
+        }));
+      console.log(`[TCASX] Loaded ${EXPLORE_ITEMS.length} activities from API (expired filtered)`);
     }
   } catch (e) {
     console.warn('[TCASX] API unavailable, using fallback data', e);
   }
 
-  // Also try to sync faculties from backend
+  // Sync faculties from backend
   try {
     const facRes = await fetch(`${API_BASE}/faculties`, { signal: AbortSignal.timeout(5000) });
     if (facRes.ok) {
