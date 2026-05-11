@@ -1,15 +1,11 @@
 // ========== data.js — Bridge between TCASX frontend and Flask API ==========
 
 // ---- Firebase Init (compat SDK loaded via <script> in index.html) ----
-firebase.initializeApp({
-  apiKey: "AIzaSyDP18fvle5Ls1mPPd6OVHII7Ay2_thaHbQ",
-  authDomain: "tcasx-48020.firebaseapp.com",
-  projectId: "tcasx-48020",
-  storageBucket: "tcasx-48020.firebasestorage.app",
-  messagingSenderId: "782302455229",
-  appId: "1:782302455229:web:5655f95a226e0015e59ed4",
-  measurementId: "G-JXR0PHP08E"
-});
+const firebaseConfig = window.__TCASX_FIREBASE_CONFIG__;
+if (!firebaseConfig || !firebaseConfig.apiKey) {
+  throw new Error('Missing Firebase config. Create public/config.local.js from public/config.local.example.js');
+}
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
