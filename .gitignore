@@ -64,6 +64,10 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.*
+
+# Frontend local runtime config (contains API keys)
+public/config.local.js
 
 # dataconnect generated files
 .dataconnect
