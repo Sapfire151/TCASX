@@ -14,7 +14,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ---- API Base ----
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 // ---- Constants ----
 const TYPE_LABELS = {
