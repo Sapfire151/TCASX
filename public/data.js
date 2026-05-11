@@ -412,6 +412,11 @@ async function loadExternalData() {
           id: f.id,
           name: f.fac_th || f.name || '',
           uni: f.uni_th || f.uni || '',
+          facultyGroup: f.faculty_group_th || '',
+          groupField: f.group_field_th || '',
+          fieldName: f.field_name_th || '',
+          campus: f.campus_th || '',
+          seats: Number(f.major_acceptance_number) || 0,
           emoji: getUniEmoji(f.id),
           req: buildReqMap(f.reqs || f.req || {})
         }));
