@@ -415,8 +415,18 @@ async function completeLogin(user) {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appWrapper').style.display = 'block';
   updateSidebarUser();
-  if (!appState.onboarded) {
-    showOnboarding();
+  let validFaculty = false;
+  if (appState.faculties && appState.faculties.length > 0) {
+    validFaculty = !!FACULTIES.find(f => f.id === appState.faculties[0]);
+  }
+  if (!appState.onboarded || !validFaculty) {
+    if (FACULTIES.length > 0) {
+      appState.onboarded = false;
+      appState.faculties = [];
+      showOnboarding();
+    } else {
+      navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
+    }
   } else {
     navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
   }
@@ -441,8 +451,18 @@ function initApp() {
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('appWrapper').style.display = 'block';
         updateSidebarUser();
-        if (!appState.onboarded) {
-          showOnboarding();
+        let validFaculty = false;
+        if (appState.faculties && appState.faculties.length > 0) {
+          validFaculty = !!FACULTIES.find(f => f.id === appState.faculties[0]);
+        }
+        if (!appState.onboarded || !validFaculty) {
+          if (FACULTIES.length > 0) { // Only force reset if API is actually loaded
+            appState.onboarded = false;
+            appState.faculties = [];
+            showOnboarding();
+          } else {
+            navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
+          }
         } else {
           navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
         }
@@ -475,22 +495,22 @@ function renderOnboardingStep() {
 
   if (obStep === 1) {
     content.innerHTML = `
-      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> สวัสดี! มาเริ่มกันเลย</h2>
-      <p class="ob-subtitle">เลือกชั้นปีและสายการเรียนของคุณ</p>
-      <div class="form-group"><label>ชั้นปี</label>
+      <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>สวัสดี! มาเริ่มกันเลย</h2>
+      <p class="ob-subtitle" style="text-align: center; margin-bottom: 32px;">เลือกชั้นปีและสายการเรียนของคุณ</p>
+      <div class="form-group"><label style="font-size: 1.1rem; font-weight: 700;">ชั้นปี</label>
         <div class="ob-options">${['ม.4', 'ม.5', 'ม.6'].map(g => `<div class="ob-option ${appState.grade === g ? 'selected' : ''}" onclick="selectGrade('${g}',this)">${g}</div>`).join('')}</div>
       </div>
-      <div class="form-group"><label>สายการเรียน</label>
+      <div class="form-group" style="margin-top: 24px;"><label style="font-size: 1.1rem; font-weight: 700;">สายการเรียน</label>
         <div class="ob-options">${['วิทย์-คณิต', 'ศิลป์-คำนวณ', 'ศิลป์-ภาษา', 'ศิลป์-สังคม'].map(t => `<div class="ob-option ${appState.track === t ? 'selected' : ''}" onclick="selectTrack('${t}',this)">${t}</div>`).join('')}</div>
       </div>
-      <div class="ob-nav"><div></div><button class="btn btn-primary" onclick="obStep=2;renderOnboardingStep()">ถัดไป →</button></div>`;
+      <div class="ob-nav" style="margin-top: 40px;"><div></div><button class="btn btn-primary" style="padding: 14px 32px; font-size: 1.1rem;" onclick="obStep=2;renderOnboardingStep()">ถัดไป →</button></div>`;
   } else if (obStep === 2) {
     content.innerHTML = `
-      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> เลือกคณะเป้าหมาย</h2>
-      <p class="ob-subtitle">ค้นหาและเลือกคณะในฝันของคุณ (เลือกได้สูงสุด 3 คณะ)</p>
+      <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>เลือกคณะเป้าหมาย</h2>
+      <p class="ob-subtitle" style="text-align: center; margin-bottom: 32px;">ค้นหาและเลือกคณะในฝันของคุณ (เลือกได้สูงสุด 3 คณะ)</p>
       
       <div class="search-dropdown">
-        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="🔍 ค้นหาคณะ หรือ มหาวิทยาลัย..." oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
+        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="🔍 ค้นหาคณะ หรือ มหาวิทยาลัย..." style="padding: 16px; font-size: 1.05rem;" oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
         <div class="search-dropdown-list" id="facultyList">
           ${renderFacultyDropdownItems(FACULTIES)}
         </div>
@@ -500,7 +520,10 @@ function renderOnboardingStep() {
         ${renderSelectedFaculties()}
       </div>
 
-      <div class="ob-nav"><button class="btn btn-secondary" onclick="obStep=1;renderOnboardingStep()">← ย้อนกลับ</button><button class="btn btn-primary" onclick="obStep=3;renderOnboardingStep()">ถัดไป →</button></div>`;
+      <div class="ob-nav" style="margin-top: 40px;">
+        <button class="btn btn-secondary" style="padding: 14px 24px; font-size: 1.1rem;" onclick="obStep=1;renderOnboardingStep()">← ย้อนกลับ</button>
+        <button class="btn btn-primary" style="padding: 14px 32px; font-size: 1.1rem;" onclick="if(appState.faculties.length === 0) { showNotification('กรุณาเลือกคณะเป้าหมายอย่างน้อย 1 คณะ', 'warning'); } else { obStep=3;renderOnboardingStep(); }">ถัดไป →</button>
+      </div>`;
 
     // Close dropdown when clicking outside
     setTimeout(() => {
@@ -510,8 +533,8 @@ function renderOnboardingStep() {
     document.removeEventListener('click', closeDropdownOutside);
     const fac = FACULTIES.find(f => f.id === appState.faculties[0]);
     content.innerHTML = `
-      <h2 class="ob-title"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg> สรุปเป้าหมาย</h2>
-      <p class="ob-subtitle">ตรวจสอบข้อมูลของคุณก่อนเริ่มต้น</p>
+      <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>สรุปเป้าหมาย</h2>
+      <p class="ob-subtitle" style="text-align: center; margin-bottom: 32px;">ตรวจสอบข้อมูลของคุณก่อนเริ่มต้น</p>
       <div class="ob-summary"><h4>ข้อมูลของคุณ</h4><ul>
         <li><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg> ${appState.grade || 'ยังไม่ได้เลือก'} — ${appState.track || 'ยังไม่ได้เลือก'}</li>
         <li><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary);"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> คณะเป้าหมาย: ${appState.faculties.map(id => { const f = FACULTIES.find(x => x.id === id); return f ? f.emoji + ' ' + f.name + ' ' + f.uni : ''; }).join(', ') || 'ยังไม่ได้เลือก'}</li>
@@ -519,7 +542,7 @@ function renderOnboardingStep() {
       ${fac ? `<div class="ob-summary"><h4>เกณฑ์ TCAS รอบ 1 — ${fac.name} ${fac.uni}</h4><ul>
         ${Object.entries(fac.req).filter(([, v]) => v > 0).map(([k, v]) => `<li>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}: ต้องการ ${v} คะแนนขึ้นไป</li>`).join('')}
       </ul></div>` : ''}
-      <div class="ob-nav"><button class="btn btn-secondary" onclick="obStep=2;renderOnboardingStep()">← ย้อนกลับ</button><button class="btn btn-accent" onclick="finishOnboarding()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> เริ่มวางแผน!</button></div>`;
+      <div class="ob-nav" style="margin-top: 40px;"><button class="btn btn-secondary" style="padding: 14px 24px; font-size: 1.1rem;" onclick="obStep=2;renderOnboardingStep()">← ย้อนกลับ</button><button class="btn btn-accent" style="padding: 14px 32px; font-size: 1.1rem;" onclick="finishOnboarding()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><line x1="12" y1="2" x2="12" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> เริ่มวางแผน!</button></div>`;
   }
 }
 
