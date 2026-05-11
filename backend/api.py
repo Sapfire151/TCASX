@@ -76,7 +76,7 @@ def fetch_cat(slug):
             img = a.find('img')
             image = img.get('src','') if img else ''
             dl_str, spots = "", 50
-            if link:
+            if link and not os.environ.get("VERCEL"):
                 try:
                     dr = http_req.get(link, headers=UA, timeout=10)
                     ds = BeautifulSoup(dr.content, 'html.parser')
@@ -130,6 +130,15 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
     {"id":"arch_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
      "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"comm_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"edu_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะครุศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+    {"id":"law_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะนิติศาสตร์","fac_en":"Law",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+    {"id":"polsci_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะรัฐศาสตร์","fac_en":"Political Science",
+     "reqs":{"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
     # === มหาวิทยาลัยธรรมศาสตร์ ===
     {"id":"eng_tu","uni_th":"มหาวิทยาลัยธรรมศาสตร์","uni_en":"Thammasat","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"},"sport_art":{"min":1,"th":"กีฬา/ศิลปะ","en":"Sports/Art"}}},
@@ -141,8 +150,15 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
     {"id":"comm_tu","uni_th":"มหาวิทยาลัยธรรมศาสตร์","uni_en":"Thammasat","fac_th":"คณะวารสารศาสตร์และสื่อสารมวลชน","fac_en":"Journalism",
      "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arts_tu","uni_th":"มหาวิทยาลัยธรรมศาสตร์","uni_en":"Thammasat","fac_th":"คณะศิลปศาสตร์","fac_en":"Liberal Arts",
+     "reqs":{"language":{"min":3,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"socadmin_tu","uni_th":"มหาวิทยาลัยธรรมศาสตร์","uni_en":"Thammasat","fac_th":"คณะสังคมสงเคราะห์ศาสตร์","fac_en":"Social Administration",
+     "reqs":{"volunteer":{"min":3,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"acc_tu","uni_th":"มหาวิทยาลัยธรรมศาสตร์","uni_en":"Thammasat","fac_th":"คณะพาณิชยศาสตร์และการบัญชี","fac_en":"Commerce & Accountancy",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
     # === มหาวิทยาลัยมหิดล ===
-    {"id":"med_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะแพทยศาสตร์ศิริราช","fac_en":"Medicine (Siriraj)",
+    {"id":"med_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะแพทยศาสตร์ศิริราช/รามา","fac_en":"Medicine",
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
     {"id":"sci_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะวิทยาศาสตร์","fac_en":"Science",
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
@@ -150,6 +166,13 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"sport_art":{"min":1,"th":"ศิลปะ","en":"Art"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
     {"id":"nurse_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะพยาบาลศาสตร์","fac_en":"Nursing",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":3,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"dent_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะทันตแพทยศาสตร์","fac_en":"Dentistry",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"sport_art":{"min":1,"th":"ศิลปะ/ทำมือ","en":"Art/Crafts"}}},
+    {"id":"pharm_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะเภสัชศาสตร์","fac_en":"Pharmacy",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arts_mu","uni_th":"มหาวิทยาลัยมหิดล","uni_en":"Mahidol","fac_th":"คณะศิลปศาสตร์","fac_en":"Liberal Arts",
+     "reqs":{"language":{"min":3,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
     # === สจล. (KMITL) ===
     {"id":"eng_kmitl","uni_th":"สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง","uni_en":"KMITL","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
@@ -157,6 +180,9 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
     {"id":"arch_kmitl","uni_th":"สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง","uni_en":"KMITL","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
      "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+    {"id":"bus_kmitl","uni_th":"สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง","uni_en":"KMITL","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
     # === มก. (Kasetsart) ===
     {"id":"eng_ku","uni_th":"มหาวิทยาลัยเกษตรศาสตร์","uni_en":"Kasetsart","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
@@ -164,6 +190,13 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
     {"id":"agri_ku","uni_th":"มหาวิทยาลัยเกษตรศาสตร์","uni_en":"Kasetsart","fac_th":"คณะเกษตร","fac_en":"Agriculture",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"bus_ku","uni_th":"มหาวิทยาลัยเกษตรศาสตร์","uni_en":"Kasetsart","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business Administration",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"hum_ku","uni_th":"มหาวิทยาลัยเกษตรศาสตร์","uni_en":"Kasetsart","fac_th":"คณะมนุษยศาสตร์","fac_en":"Humanities",
+     "reqs":{"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"vet_ku","uni_th":"มหาวิทยาลัยเกษตรศาสตร์","uni_en":"Kasetsart","fac_th":"คณะสัตวแพทยศาสตร์","fac_en":"Veterinary Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+
     # === มจธ. (KMUTT) ===
     {"id":"eng_kmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี","uni_en":"KMUTT","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
@@ -171,6 +204,9 @@ FACULTIES = [
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
     {"id":"it_kmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี","uni_en":"KMUTT","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"sport_art":{"min":1,"th":"ศิลปะ","en":"Art"}}},
+    {"id":"arch_kmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี","uni_en":"KMUTT","fac_th":"คณะสถาปัตยกรรมและการออกแบบ","fac_en":"Architecture & Design",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+
     # === มช. (Chiang Mai) ===
     {"id":"eng_cmu","uni_th":"มหาวิทยาลัยเชียงใหม่","uni_en":"Chiang Mai","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
@@ -178,6 +214,13 @@ FACULTIES = [
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
     {"id":"masscomm_cmu","uni_th":"มหาวิทยาลัยเชียงใหม่","uni_en":"Chiang Mai","fac_th":"คณะการสื่อสารมวลชน","fac_en":"Mass Communication",
      "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"arts_cmu","uni_th":"มหาวิทยาลัยเชียงใหม่","uni_en":"Chiang Mai","fac_th":"คณะมนุษยศาสตร์","fac_en":"Humanities",
+     "reqs":{"language":{"min":3,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"edu_cmu","uni_th":"มหาวิทยาลัยเชียงใหม่","uni_en":"Chiang Mai","fac_th":"คณะศึกษาศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"nurs_cmu","uni_th":"มหาวิทยาลัยเชียงใหม่","uni_en":"Chiang Mai","fac_th":"คณะพยาบาลศาสตร์","fac_en":"Nursing",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":3,"th":"จิตอาสา","en":"Volunteer"}}},
+
     # === มข. (Khon Kaen) ===
     {"id":"eng_kku","uni_th":"มหาวิทยาลัยขอนแก่น","uni_en":"Khon Kaen","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
      "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
@@ -185,6 +228,37 @@ FACULTIES = [
      "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
     {"id":"edu_kku","uni_th":"มหาวิทยาลัยขอนแก่น","uni_en":"Khon Kaen","fac_th":"คณะศึกษาศาสตร์","fac_en":"Education",
      "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"medtech_kku","uni_th":"มหาวิทยาลัยขอนแก่น","uni_en":"Khon Kaen","fac_th":"คณะเทคนิคการแพทย์","fac_en":"Medical Technology",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arch_kku","uni_th":"มหาวิทยาลัยขอนแก่น","uni_en":"Khon Kaen","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+
+    # === มศว. (SWU) ===
+    {"id":"edu_swu","uni_th":"มหาวิทยาลัยศรีนครินทรวิโรฒ","uni_en":"SWU","fac_th":"คณะศึกษาศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":3,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"med_swu","uni_th":"มหาวิทยาลัยศรีนครินทรวิโรฒ","uni_en":"SWU","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arts_swu","uni_th":"มหาวิทยาลัยศรีนครินทรวิโรฒ","uni_en":"SWU","fac_th":"คณะมนุษยศาสตร์","fac_en":"Humanities",
+     "reqs":{"language":{"min":3,"th":"ภาษา","en":"Language"},"sport_art":{"min":1,"th":"ศิลปะ","en":"Art"}}},
+    {"id":"fofa_swu","uni_th":"มหาวิทยาลัยศรีนครินทรวิโรฒ","uni_en":"SWU","fac_th":"คณะศิลปกรรมศาสตร์","fac_en":"Fine Arts",
+     "reqs":{"sport_art":{"min":4,"th":"ศิลปะ","en":"Art"}}},
+
+    # === ม.บูรพา (BUU) ===
+    {"id":"nurs_buu","uni_th":"มหาวิทยาลัยบูรพา","uni_en":"BUU","fac_th":"คณะพยาบาลศาสตร์","fac_en":"Nursing",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"sci_buu","uni_th":"มหาวิทยาลัยบูรพา","uni_en":"BUU","fac_th":"คณะวิทยาศาสตร์","fac_en":"Science",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"}}},
+    {"id":"marinesci_buu","uni_th":"มหาวิทยาลัยบูรพา","uni_en":"BUU","fac_th":"คณะวิทยาศาสตร์ทางทะเล","fac_en":"Marine Science",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.สงขลานครินทร์ (PSU) ===
+    {"id":"med_psu","uni_th":"มหาวิทยาลัยสงขลานครินทร์","uni_en":"PSU","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"eng_psu","uni_th":"มหาวิทยาลัยสงขลานครินทร์","uni_en":"PSU","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"natres_psu","uni_th":"มหาวิทยาลัยสงขลานครินทร์","uni_en":"PSU","fac_th":"คณะทรัพยากรธรรมชาติ","fac_en":"Natural Resources",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+
 ]
 
 TCAS_DEADLINE = "2026-12-20T23:59:59"
@@ -239,6 +313,7 @@ def prefetch():
         print(f"[WARN] {e}")
 
 if __name__ == '__main__':
-    threading.Thread(target=prefetch, daemon=True).start()
+    if not os.environ.get("VERCEL"):
+        threading.Thread(target=prefetch, daemon=True).start()
     print("[INFO] TCASX API on http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True)
