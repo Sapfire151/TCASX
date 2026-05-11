@@ -8,6 +8,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import requests as http_req
 from bs4 import BeautifulSoup
+import concurrent.futures
 
 try:
     from camp_parser import camphub_parser
@@ -108,11 +109,19 @@ def fetch_all():
     c = cached("all")
     if c: return c
     items, idx = [], 1
-    for slug in CATS:
-        print(f"  Fetching {slug}...")
-        for it in fetch_cat(slug):
-            it["id"] = idx; idx += 1
-            items.append(it)
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        future_to_slug = {executor.submit(fetch_cat, slug): slug for slug in CATS}
+        for future in concurrent.futures.as_completed(future_to_slug):
+            slug = future_to_slug[future]
+            try:
+                for it in future.result():
+                    it["id"] = idx
+                    idx += 1
+                    items.append(it)
+            except Exception as e:
+                print(f"[ERR] {slug} generated an exception: {e}")
+                
     cache_set("all", items)
     return items
 
