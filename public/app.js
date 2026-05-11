@@ -597,9 +597,61 @@ function selectTrack(t, el) { appState.track = t; saveState(); el.parentElement.
 function getUniqueUniversities() {
   return [...new Set(FACULTIES.map(f => f.uni))].sort((a, b) => a.localeCompare(b, 'th'));
 }
+function getTrackKeywords(track) {
+  const map = {
+    'วิทย์-คณิต': ['วิทย', 'วิศว', 'คอม', 'เทคโนโลยี', 'ข้อมูล', 'แพทย', 'เภสัช', 'ทันต', 'พยาบาล', 'วิทยาการ'],
+    'วิทย์-วิศวะ': ['วิศว', 'เครื่องกล', 'โยธา', 'ไฟฟ้า', 'อุตสาหการ', 'เมคคาทรอนิกส์', 'หุ่นยนต์'],
+    'วิทย์-คอม': ['คอม', 'ซอฟต์แวร์', 'ข้อมูล', 'ดิจิทัล', 'สารสนเทศ', 'ปัญญาประดิษฐ์', 'ไอที'],
+    'ศิลป์-คำนวณ': ['บริหาร', 'บัญชี', 'เศรษฐ', 'โลจิสติกส์', 'การตลาด', 'ธุรกิจ'],
+    'ศิลป์-ภาษา': ['ภาษา', 'อักษร', 'มนุษย', 'นิเทศ', 'วารสาร', 'แปล'],
+    'ศิลป์-สังคม': ['รัฐ', 'นิติ', 'สังคม', 'รัฐประศาสน', 'การเมือง', 'ครุ', 'ศึกษา']
+  };
+  return map[track] || [];
+}
+function scoreFacultyForUser(faculty, query = '') {
+  const q = query.toLowerCase().trim();
+  const haystack = `${faculty.name} ${faculty.uni} ${faculty.facultyGroup || ''} ${faculty.groupField || ''} ${faculty.fieldName || ''}`.toLowerCase();
+  let score = 0;
+
+  // query relevance
+  if (!q) score += 20;
+  else if (haystack.startsWith(q)) score += 50;
+  else if (haystack.includes(q)) score += 35;
+
+  // track relevance
+  const trackKeywords = getTrackKeywords(appState.track);
+  for (const kw of trackKeywords) {
+    if (haystack.includes(kw.toLowerCase())) score += 8;
+  }
+
+  // grade weighting: earlier grade should prefer broader options (more seats)
+  const grade = appState.grade || 'ม.5';
+  const seats = Number(faculty.seats) || 0;
+  if (seats > 0) {
+    if (['ม.1', 'ม.2', 'ม.3'].includes(grade)) {
+      if (seats >= 120) score += 15;
+      else if (seats >= 60) score += 8;
+    } else {
+      if (seats <= 30) score += 10;
+      else if (seats <= 80) score += 6;
+    }
+  }
+
+  // slight diversity boost for not-yet-selected university/program
+  if (!appState.faculties.includes(faculty.id)) score += 2;
+  return score;
+}
 function getFilteredFaculties(query = '') {
   const q = query.toLowerCase();
-  return FACULTIES.filter(f => (!selectedUniversity || f.uni === selectedUniversity) && (f.name.toLowerCase().includes(q) || f.uni.toLowerCase().includes(q)));
+  const filtered = FACULTIES.filter(f => {
+    if (selectedUniversity && f.uni !== selectedUniversity) return false;
+    if (!q) return true;
+    const search = `${f.name} ${f.uni} ${f.facultyGroup || ''} ${f.groupField || ''} ${f.fieldName || ''}`.toLowerCase();
+    return search.includes(q);
+  });
+  return filtered
+    .map((f) => ({ ...f, _score: scoreFacultyForUser(f, query) }))
+    .sort((a, b) => b._score - a._score || a.name.localeCompare(b.name, 'th'));
 }
 function renderUniversityDropdownItems() {
   const universities = getUniqueUniversities();
@@ -626,7 +678,7 @@ function renderFacultyDropdownItems(facs) {
   return facs.map(f => `
     <div class="search-item" onclick="selectFacultyFromDropdown('${f.id}')">
       <div class="search-item-title"><span>${f.emoji}</span> ${f.name}</div>
-      <div class="search-item-subtitle">${f.uni}</div>
+      <div class="search-item-subtitle">${f.uni}${f.facultyGroup ? ` • ${f.facultyGroup}` : ''}${f.campus ? ` • ${f.campus}` : ''}${f.seats ? ` • รับ ${f.seats} คน` : ''}</div>
     </div>
   `).join('') || `<div class="search-item" style="color:var(--gray-400); text-align:center;">ไม่พบข้อมูล</div>`;
 }
