@@ -31,14 +31,16 @@ function getCountdown() {
 
 // ========== Dashboard ==========
 function renderDashboard() {
-  const cd = getCountdown(), pct = getCompletionPct(), scores = getScores(), reqs = getTargetReqs();
+  if (EXPLORE_ITEMS.length === 0 || FACULTIES.length === 0) {
+    document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:100px 20px;color:var(--gray-400);"><h2>ไม่สามารถโหลดข้อมูลได้ (Backend Offline)</h2><p>กรุณารันคำสั่ง <code>python api.py</code> ในโฟลเดอร์ backend</p></div>';
+    return;
+  }
+  const cd = getCountdown();
+  const ai = runAIAnalysis();
+  const pct = ai.overallScore;
+  const reqs = getTargetReqs();
   const fac = appState.faculties.length ? FACULTIES.find(f => f.id === appState.faculties[0]) : null;
-  const gaps = [], strengths = [];
-  Object.keys(reqs).forEach(k => {
-    if (reqs[k] > 0 && (scores[k] || 0) < reqs[k]) gaps.push(k);
-    if ((scores[k] || 0) >= reqs[k] && reqs[k] > 0) strengths.push(k);
-  });
-  const recActivities = EXPLORE_ITEMS.filter(e => gaps.includes(e.type)).slice(0, 3);
+  const recActivities = ai.recommendations.length ? ai.recommendations : EXPLORE_ITEMS.slice(0, 3);
 
   document.getElementById('mainContent').innerHTML = `
   <div class="dashboard-hero">
@@ -66,29 +68,39 @@ function renderDashboard() {
   <div class="dash-grid">
     <div class="ai-card">
       <h3>AI Matching — ${fac ? fac.name + ' ' + fac.uni : 'ยังไม่ได้เลือกคณะ'}</h3>
-      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span><div><strong>คณะต้องการ:</strong> ${fac ? Object.entries(reqs).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') : 'กรุณาเลือกคณะเป้าหมาย'}</div></div>
-      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></span><div><strong>คุณมีอยู่:</strong> ${Object.entries(scores).filter(([, v]) => v > 0).map(([k, v]) => `${TYPE_LABELS[k]} (${v})`).join(', ') || 'ยังไม่มีกิจกรรม'}</div></div>
-      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; color:var(--red);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg></span><div><strong>ยังขาด:</strong> ${gaps.length ? gaps.map(k => TYPE_LABELS[k]).join(', ') : 'ครบแล้ว! <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>'}</div></div>
-      <div class="ai-item"><span class="ai-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A6 6 0 1 0 7.5 11.5c.76.76 1.23 1.52 1.41 2.5"></path></svg></span><div><strong>แนะนำ:</strong> ${recActivities.length ? recActivities.map(a => a.name).join(', ') : 'ไม่มีกิจกรรมแนะนำเพิ่มเติม'}</div></div>
+      <div class="ai-verdict ai-verdict-${ai.verdictType}">
+        <strong>${ai.verdict}</strong>
+      </div>
+      ${ai.strengths.length ? '<div style="margin-top:10px"><strong style="color:#6EE7B7">✓ จุดแข็ง</strong></div>' + ai.strengths.map(s => `<div class="ai-item" style="border-color:rgba(110,231,183,.3)"><span class="ai-icon" style="color:#6EE7B7">✓</span><div><strong>${s.message}</strong><br><span style="opacity:.7;font-size:.78rem">${s.detail}</span></div></div>`).join('') : ''}
+      ${ai.gaps.length ? '<div style="margin-top:10px"><strong style="color:#FCA5A5">✗ ช่องว่าง</strong></div>' + ai.gaps.map(g => `<div class="ai-item" style="border-color:rgba(252,165,165,.3)"><span class="ai-icon" style="color:${g.severity==='critical'?'#EF4444':g.severity==='high'?'#F59E0B':'#60A5FA'}">●</span><div><strong>${g.message}</strong><br><span style="opacity:.7;font-size:.78rem">${g.detail}</span></div></div>`).join('') : ''}
+      ${ai.warnings.length ? ai.warnings.map(w => `<div class="ai-item" style="border-color:rgba(251,191,36,.3)"><span class="ai-icon" style="color:#FBBF24">⚠</span><div style="font-size:.82rem">${w}</div></div>`).join('') : ''}
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;font-size:.72rem;opacity:.6">
+        <span>กิจกรรม: ${ai.stats.totalActivities}</span>
+        <span>เสร็จ: ${ai.stats.completedActivities}</span>
+        <span>หมวด: ${ai.stats.activeCategoriesCount}/5</span>
+      </div>
     </div>
 
     <div>
-      <h3 class="section-title" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg> คะแนนตามหมวด</h3>
+      <h3 class="section-title" style="margin-bottom:12px">วิเคราะห์ตามหมวด (AI)</h3>
       ${Object.keys(TYPE_LABELS).map(k => {
-    const s = scores[k] || 0, r = reqs[k] || 1, p = Math.min(100, Math.round((s / Math.max(r, 1)) * 100));
-    return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}</span><span style="font-weight:700;color:${p >= 100 ? 'var(--green)' : 'var(--gray-600)'}">${s}/${r}</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${p}%;background:${p >= 100 ? 'var(--green)' : 'var(--primary)'}"></div></div></div>`;
+    const sig = ai.categorySignals[k];
+    const p = Math.round(sig.fulfillment * 100);
+    const statusColor = sig.status==='strong'?'var(--green)':sig.status==='developing'?'var(--orange)':sig.status==='weak'||sig.status==='missing'?'var(--red)':'var(--gray-400)';
+    const statusLabel = sig.status==='strong'?'ผ่าน':sig.status==='developing'?'พัฒนา':sig.status==='weak'?'อ่อน':sig.status==='missing'?'ขาด':'ไม่จำเป็น';
+    return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}</span><span style="font-weight:700;color:${statusColor}">${statusLabel} (${sig.count} กิจกรรม)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${p}%;background:${statusColor}"></div></div></div>`;
   }).join('')}
     </div>
   </div>
 
-  <h3 class="section-title" style="display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> กิจกรรมแนะนำประจำสัปดาห์</h3>
+  <h3 class="section-title">กิจกรรมแนะนำ (AI)</h3>
   <div class="dash-grid-3">
-    ${(recActivities.length ? recActivities : EXPLORE_ITEMS.slice(0, 3)).map(a => `
+    ${recActivities.map(a => `
       <div class="card" style="display:flex; flex-direction:column;">
-        <div style="font-size:2rem;margin-bottom:8px">${a.emoji}</div>
+        <div style="font-size:2rem;margin-bottom:8px">${a.emoji || TYPE_EMOJIS[a.type] || ''}</div>
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:4px">${a.name}</h4>
-        <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${a.deadline} · <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg> ${a.cert}</p>
-        <div style="margin-bottom:16px;"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span></div>
+        <p style="font-size:.78rem;color:var(--gray-400);margin-bottom:8px">${a.deadline} · ${a.cert || ''}</p>
+        <div style="margin-bottom:16px;"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span>${a.reason ? `<span style="font-size:.7rem;color:var(--orange);margin-left:6px">${a.reason}</span>` : ''}</div>
         <div style="display:flex;gap:8px;flex-direction:row; margin-top:auto;">
           <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ Roadmap</button>
         </div>
@@ -139,6 +151,10 @@ function getCatBg(t) { return { academic: 'rgba(129,140,248,.15)', volunteer: 'r
 // ========== Explore ==========
 let exploreFilter = 'all';
 function renderExplore() {
+  if (EXPLORE_ITEMS.length === 0) {
+    document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:100px 20px;color:var(--gray-400);"><h2>ไม่สามารถโหลดข้อมูลได้ (Backend Offline)</h2><p>กรุณารันคำสั่ง <code>python api.py</code> ในโฟลเดอร์ backend</p></div>';
+    return;
+  }
   const items = exploreFilter === 'all' ? EXPLORE_ITEMS : EXPLORE_ITEMS.filter(e => e.type === exploreFilter);
   document.getElementById('mainContent').innerHTML = `
   <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:4px"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>Explore</h1>
@@ -442,6 +458,10 @@ function initApp() {
 // ========== Onboarding ==========
 let obStep = 1;
 function showOnboarding() {
+  if (FACULTIES.length === 0) {
+    document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:100px 20px;color:var(--gray-400);"><h2>ไม่สามารถโหลดข้อมูลได้ (Backend Offline)</h2><p>กรุณารันคำสั่ง <code>python api.py</code> ในโฟลเดอร์ backend</p></div>';
+    return;
+  }
   document.getElementById('onboardingModal').style.display = 'flex';
   obStep = 1; renderOnboardingStep();
 }
