@@ -309,6 +309,24 @@ def faculty(fid):
         if f['id']==fid: return jsonify(f)
     return jsonify({"error":"Not found"}), 404
 
+@app.route('/api/university-programs')
+def university_programs():
+    grouped = {}
+    for f in FACULTIES:
+        uni = f.get("uni_th") or f.get("uni_en") or ""
+        if not uni:
+            continue
+        if uni not in grouped:
+            grouped[uni] = {"university": uni, "programs": []}
+        grouped[uni]["programs"].append({
+            "id": f.get("id"),
+            "name": f.get("fac_th") or f.get("fac_en") or "",
+            "reqs": f.get("reqs", {}),
+        })
+    result = list(grouped.values())
+    result.sort(key=lambda x: x["university"])
+    return jsonify(result)
+
 @app.route('/api/categories')
 def categories():
     return jsonify([{"slug":k,"type":v['type'],"type_th":v['th'],"type_en":v['en'],"color":COLORS.get(v['type'],'#3B2FCC')} for k,v in CATS.items()])
