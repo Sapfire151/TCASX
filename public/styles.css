@@ -621,6 +621,18 @@ body {
   margin-top: 2px;
 }
 
+.ai-verdict {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  font-size: .88rem;
+}
+.ai-verdict-excellent { background: rgba(16,185,129,.2); color: #6EE7B7; }
+.ai-verdict-good { background: rgba(96,165,250,.2); color: #93C5FD; }
+.ai-verdict-developing { background: rgba(251,191,36,.2); color: #FDE68A; }
+.ai-verdict-starting { background: rgba(244,114,182,.2); color: #F9A8D4; }
+.ai-verdict-empty { background: rgba(156,163,175,.15); color: #D1D5DB; }
+
 /* Activity Cards */
 .activity-card {
   display: flex;
@@ -1092,22 +1104,27 @@ body {
 }
 
 .ob-option {
-  padding: 14px;
+  padding: 16px;
   border: 2px solid var(--gray-200);
+  border-bottom-width: 4px;
   border-radius: var(--radius-md);
   cursor: pointer;
   text-align: center;
-  font-weight: 600;
-  font-size: .9rem;
-  transition: all var(--transition);
+  font-weight: 700;
+  font-size: 1.05rem;
+  transition: all var(--transition-fast);
+  background: var(--white);
 }
 
 .ob-option:hover {
-  border-color: var(--primary-light);
+  border-color: var(--gray-300);
+  background: var(--gray-50);
 }
 
 .ob-option.selected {
   border-color: var(--primary);
+  border-bottom-width: 2px;
+  transform: translateY(2px);
   background: rgba(59, 47, 204, .05);
   color: var(--primary);
 }
