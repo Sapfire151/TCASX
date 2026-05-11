@@ -88,6 +88,9 @@ function saveState() {
       roadmap: appState.roadmap,
       name: appState.currentUser?.name || '',
       bio: appState.currentUser?.bio || '',
+      avatarUrl: appState.currentUser?.avatarUrl || '',
+      headline: appState.currentUser?.headline || '',
+      school: appState.currentUser?.school || '',
       isPublic: !!appState.currentUser?.isPublic,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, { merge: true }).catch(e => console.warn('Firestore save error:', e));
