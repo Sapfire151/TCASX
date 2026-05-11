@@ -1,5 +1,28 @@
 // ========== Router ==========
 let currentPage = 'dashboard';
+const GRADE_OPTIONS = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+const TRACK_OPTIONS = ['วิทย์-คณิต', 'วิทย์-วิศวะ', 'วิทย์-คอม', 'ศิลป์-คำนวณ', 'ศิลป์-ภาษา', 'ศิลป์-สังคม'];
+let selectedUniversity = '';
+
+function escapeHtml(text) {
+  return String(text || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function getInitials(name) {
+  const value = String(name || '').trim();
+  if (!value) return 'นร';
+  return value.split(/\s+/).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
+}
+
+function renderAvatarHtml(user = appState.currentUser, size = 36) {
+  const name = user?.name || 'นักเรียน';
+  const avatarUrl = user?.avatarUrl || '';
+  if (avatarUrl) {
+    return `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(name)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
+  }
+  return `<span class="avatar-fallback" style="width:${size}px;height:${size}px;">${escapeHtml(getInitials(name))}</span>`;
+}
+
 function navigate(page) {
   currentPage = page;
   document.querySelectorAll('.nav-link,.tab-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
@@ -8,7 +31,7 @@ function navigate(page) {
   try {
     const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal, rate: renderRate };
     (renderers[page] || renderDashboard)();
-  } catch(e) { console.error('Navigate error:', e); renderDashboard(); }
+  } catch (e) { console.error('Navigate error:', e); renderDashboard(); }
 }
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); }));
 
@@ -72,7 +95,7 @@ function renderDashboard() {
         <strong>${ai.verdict}</strong>
       </div>
       ${ai.strengths.length ? '<div style="margin-top:10px"><strong style="color:#6EE7B7">✓ จุดแข็ง</strong></div>' + ai.strengths.map(s => `<div class="ai-item" style="border-color:rgba(110,231,183,.3)"><span class="ai-icon" style="color:#6EE7B7">✓</span><div><strong>${s.message}</strong><br><span style="opacity:.7;font-size:.78rem">${s.detail}</span></div></div>`).join('') : ''}
-      ${ai.gaps.length ? '<div style="margin-top:10px"><strong style="color:#FCA5A5">✗ ช่องว่าง</strong></div>' + ai.gaps.map(g => `<div class="ai-item" style="border-color:rgba(252,165,165,.3)"><span class="ai-icon" style="color:${g.severity==='critical'?'#EF4444':g.severity==='high'?'#F59E0B':'#60A5FA'}">●</span><div><strong>${g.message}</strong><br><span style="opacity:.7;font-size:.78rem">${g.detail}</span></div></div>`).join('') : ''}
+      ${ai.gaps.length ? '<div style="margin-top:10px"><strong style="color:#FCA5A5">✗ ช่องว่าง</strong></div>' + ai.gaps.map(g => `<div class="ai-item" style="border-color:rgba(252,165,165,.3)"><span class="ai-icon" style="color:${g.severity === 'critical' ? '#EF4444' : g.severity === 'high' ? '#F59E0B' : '#60A5FA'}">●</span><div><strong>${g.message}</strong><br><span style="opacity:.7;font-size:.78rem">${g.detail}</span></div></div>`).join('') : ''}
       ${ai.warnings.length ? ai.warnings.map(w => `<div class="ai-item" style="border-color:rgba(251,191,36,.3)"><span class="ai-icon" style="color:#FBBF24">⚠</span><div style="font-size:.82rem">${w}</div></div>`).join('') : ''}
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;font-size:.72rem;opacity:.6">
         <span>กิจกรรม: ${ai.stats.totalActivities}</span>
@@ -86,8 +109,8 @@ function renderDashboard() {
       ${Object.keys(TYPE_LABELS).map(k => {
     const sig = ai.categorySignals[k];
     const p = Math.round(sig.fulfillment * 100);
-    const statusColor = sig.status==='strong'?'var(--green)':sig.status==='developing'?'var(--orange)':sig.status==='weak'||sig.status==='missing'?'var(--red)':'var(--gray-400)';
-    const statusLabel = sig.status==='strong'?'ผ่าน':sig.status==='developing'?'พัฒนา':sig.status==='weak'?'อ่อน':sig.status==='missing'?'ขาด':'ไม่จำเป็น';
+    const statusColor = sig.status === 'strong' ? 'var(--green)' : sig.status === 'developing' ? 'var(--orange)' : sig.status === 'weak' || sig.status === 'missing' ? 'var(--red)' : 'var(--gray-400)';
+    const statusLabel = sig.status === 'strong' ? 'ผ่าน' : sig.status === 'developing' ? 'พัฒนา' : sig.status === 'weak' ? 'อ่อน' : sig.status === 'missing' ? 'ขาด' : 'ไม่จำเป็น';
     return `<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}</span><span style="font-weight:700;color:${statusColor}">${statusLabel} (${sig.count} กิจกรรม)</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${p}%;background:${statusColor}"></div></div></div>`;
   }).join('')}
     </div>
@@ -254,7 +277,7 @@ async function loadPublicUsers() {
       html += `
         <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-            <div style="font-size:2rem; color:var(--primary)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+            <div>${renderAvatarHtml({ name: data.name, avatarUrl: data.avatarUrl }, 44)}</div>
             <div>
               <div style="font-weight:700;">${data.name || 'Anonymous'}</div>
               <div style="font-size:0.8rem; color:var(--gray-400);">${data.grade || '-'} — ${data.track || '-'}</div>
@@ -266,7 +289,7 @@ async function loadPublicUsers() {
         </div>
       `;
     });
-    if(!html) html = '<p style="grid-column: 1/-1; color:var(--gray-400); text-align:center;">ยังไม่มีใครเปิดพอร์ตเป็นสาธารณะตอนนี้</p>';
+    if (!html) html = '<p style="grid-column: 1/-1; color:var(--gray-400); text-align:center;">ยังไม่มีใครเปิดพอร์ตเป็นสาธารณะตอนนี้</p>';
     const grid = document.getElementById('publicUsersGrid');
     if (grid) grid.innerHTML = html;
   } catch (e) {
@@ -324,19 +347,23 @@ async function submitRate(e) {
   const btn = document.getElementById('rateSubmitBtn');
   btn.disabled = true; btn.innerText = 'กำลังส่ง...';
   const webhookUrl = 'https://discord.com/api/webhooks/1503041111969632427/IevVUfYevqaBQXW0sY_sNnJxEqsMsFTDD9rm88j_NifwFEiGyAzPvao-RoCB7ojzfUJP';
-  const payload = { embeds: [{ title: "New TCASX Review", color: 16766720, fields: [
-    { name: "User", value: appState.currentUser?.name || "Anonymous", inline: true },
-    { name: "Email", value: appState.currentUser?.username || "N/A", inline: true },
-    { name: "Rating", value: String.fromCodePoint(11088).repeat(parseInt(stars)), inline: false },
-    { name: "Comment", value: comment, inline: false }
-  ], timestamp: new Date().toISOString() }] };
+  const payload = {
+    embeds: [{
+      title: "New TCASX Review", color: 16766720, fields: [
+        { name: "User", value: appState.currentUser?.name || "Anonymous", inline: true },
+        { name: "Email", value: appState.currentUser?.username || "N/A", inline: true },
+        { name: "Rating", value: String.fromCodePoint(11088).repeat(parseInt(stars)), inline: false },
+        { name: "Comment", value: comment, inline: false }
+      ], timestamp: new Date().toISOString()
+    }]
+  };
   try {
     await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     showNotification('ส่งความคิดเห็นเรียบร้อย ขอบคุณครับ!', 'success');
     document.getElementById('rateForm').reset();
     document.getElementById('rateStars').value = "0";
     document.querySelectorAll('#starRating span').forEach(s => s.style.color = 'var(--gray-300)');
-  } catch(err) { showNotification('ไม่สามารถส่งข้อมูลได้', 'error'); }
+  } catch (err) { showNotification('ไม่สามารถส่งข้อมูลได้', 'error'); }
   finally { btn.disabled = false; btn.innerText = 'ส่งความคิดเห็น'; }
 }
 
@@ -404,13 +431,16 @@ async function completeLogin(user) {
       if (data.name) appState.currentUser.name = data.name;
       appState.currentUser.bio = data.bio || '';
       appState.currentUser.isPublic = !!data.isPublic;
+      appState.currentUser.avatarUrl = data.avatarUrl || '';
+      appState.currentUser.headline = data.headline || '';
+      appState.currentUser.school = data.school || '';
     }
   } catch (e) {
     console.error("Error fetching user data", e);
   }
 
   saveState();
-  
+
   // Directly transition UI instead of calling initApp()
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appWrapper').style.display = 'block';
@@ -482,6 +512,10 @@ function showOnboarding() {
     document.getElementById('mainContent').innerHTML = '<div style="text-align:center;padding:100px 20px;color:var(--gray-400);"><h2>ไม่สามารถโหลดข้อมูลได้ (Backend Offline)</h2><p>กรุณารันคำสั่ง <code>python api.py</code> ในโฟลเดอร์ backend</p></div>';
     return;
   }
+  if (!selectedUniversity && appState.faculties.length > 0) {
+    const selected = FACULTIES.find(f => f.id === appState.faculties[0]);
+    selectedUniversity = selected ? selected.uni : '';
+  }
   document.getElementById('onboardingModal').style.display = 'flex';
   obStep = 1; renderOnboardingStep();
 }
@@ -498,21 +532,31 @@ function renderOnboardingStep() {
       <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>สวัสดี! มาเริ่มกันเลย</h2>
       <p class="ob-subtitle" style="text-align: center; margin-bottom: 32px;">เลือกชั้นปีและสายการเรียนของคุณ</p>
       <div class="form-group"><label style="font-size: 1.1rem; font-weight: 700;">ชั้นปี</label>
-        <div class="ob-options">${['ม.4', 'ม.5', 'ม.6'].map(g => `<div class="ob-option ${appState.grade === g ? 'selected' : ''}" onclick="selectGrade('${g}',this)">${g}</div>`).join('')}</div>
+        <div class="ob-options">${GRADE_OPTIONS.map(g => `<div class="ob-option ${appState.grade === g ? 'selected' : ''}" onclick="selectGrade('${g}',this)">${g}</div>`).join('')}</div>
       </div>
       <div class="form-group" style="margin-top: 24px;"><label style="font-size: 1.1rem; font-weight: 700;">สายการเรียน</label>
-        <div class="ob-options">${['วิทย์-คณิต', 'ศิลป์-คำนวณ', 'ศิลป์-ภาษา', 'ศิลป์-สังคม'].map(t => `<div class="ob-option ${appState.track === t ? 'selected' : ''}" onclick="selectTrack('${t}',this)">${t}</div>`).join('')}</div>
+        <div class="ob-options">${TRACK_OPTIONS.map(t => `<div class="ob-option ${appState.track === t ? 'selected' : ''}" onclick="selectTrack('${t}',this)">${t}</div>`).join('')}</div>
       </div>
       <div class="ob-nav" style="margin-top: 40px;"><div></div><button class="btn btn-primary" style="padding: 14px 32px; font-size: 1.1rem;" onclick="obStep=2;renderOnboardingStep()">ถัดไป →</button></div>`;
   } else if (obStep === 2) {
     content.innerHTML = `
-      <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>เลือกคณะเป้าหมาย</h2>
-      <p class="ob-subtitle" style="text-align: center; margin-bottom: 32px;">ค้นหาและเลือกคณะในฝันของคุณ (เลือกได้สูงสุด 3 คณะ)</p>
-      
-      <div class="search-dropdown">
-        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="🔍 ค้นหาคณะ หรือ มหาวิทยาลัย..." style="padding: 16px; font-size: 1.05rem;" oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
+      <h2 class="ob-title" style="font-size: 1.8rem; text-align: center; margin-bottom: 8px;"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; color:var(--primary); margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>เลือกมหาวิทยาลัยและสาขา</h2>
+      <p class="ob-subtitle" style="text-align: center; margin-bottom: 24px;">เลือกมหาวิทยาลัยก่อน แล้วเลือกสาขาปริญญาตรีที่สนใจ (สูงสุด 3 รายการ)</p>
+
+      <div class="search-dropdown custom-dropdown">
+        <button type="button" class="custom-dropdown-trigger" onclick="toggleUniversityDropdown()">
+          <span>${selectedUniversity || '🏫 เลือกมหาวิทยาลัย'}</span>
+          <span>▾</span>
+        </button>
+        <div class="search-dropdown-list" id="universityList">
+          ${renderUniversityDropdownItems()}
+        </div>
+      </div>
+
+      <div class="search-dropdown" style="margin-top: 12px;">
+        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="🔍 ค้นหาสาขา/หลักสูตรปริญญาตรี..." style="padding: 16px; font-size: 1.05rem;" oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
         <div class="search-dropdown-list" id="facultyList">
-          ${renderFacultyDropdownItems(FACULTIES)}
+          ${renderFacultyDropdownItems(getFilteredFaculties())}
         </div>
       </div>
       
@@ -550,6 +594,34 @@ function selectGrade(g, el) { appState.grade = g; saveState(); el.parentElement.
 function selectTrack(t, el) { appState.track = t; saveState(); el.parentElement.querySelectorAll('.ob-option').forEach(o => o.classList.remove('selected')); el.classList.add('selected'); updateSidebarUser(); }
 
 // Dropdown Logic
+function getUniqueUniversities() {
+  return [...new Set(FACULTIES.map(f => f.uni))].sort((a, b) => a.localeCompare(b, 'th'));
+}
+function getFilteredFaculties(query = '') {
+  const q = query.toLowerCase();
+  return FACULTIES.filter(f => (!selectedUniversity || f.uni === selectedUniversity) && (f.name.toLowerCase().includes(q) || f.uni.toLowerCase().includes(q)));
+}
+function renderUniversityDropdownItems() {
+  const universities = getUniqueUniversities();
+  return universities.map((uni) => `
+    <div class="search-item" onclick="selectUniversity('${uni.replace(/'/g, "\\'")}')">
+      <div class="search-item-title">${uni}</div>
+      <div class="search-item-subtitle">${FACULTIES.filter(f => f.uni === uni).length} หลักสูตร</div>
+    </div>
+  `).join('');
+}
+function toggleUniversityDropdown() {
+  const list = document.getElementById('universityList');
+  if (list) list.classList.toggle('active');
+}
+function selectUniversity(uni) {
+  selectedUniversity = uni;
+  const list = document.getElementById('universityList');
+  const facultyList = document.getElementById('facultyList');
+  if (list) list.classList.remove('active');
+  if (facultyList) facultyList.innerHTML = renderFacultyDropdownItems(getFilteredFaculties());
+  renderOnboardingStep();
+}
 function renderFacultyDropdownItems(facs) {
   return facs.map(f => `
     <div class="search-item" onclick="selectFacultyFromDropdown('${f.id}')">
@@ -559,16 +631,20 @@ function renderFacultyDropdownItems(facs) {
   `).join('') || `<div class="search-item" style="color:var(--gray-400); text-align:center;">ไม่พบข้อมูล</div>`;
 }
 function filterFaculties(query) {
-  query = query.toLowerCase();
   const list = document.getElementById('facultyList');
   if (!list) return;
   list.classList.add('active');
-  const filtered = FACULTIES.filter(f => f.name.toLowerCase().includes(query) || f.uni.toLowerCase().includes(query));
+  const filtered = getFilteredFaculties(query);
   list.innerHTML = renderFacultyDropdownItems(filtered);
 }
 function closeDropdownOutside(e) {
+  const uniList = document.getElementById('universityList');
   const list = document.getElementById('facultyList');
   const input = document.getElementById('facultySearch');
+  const uniTrigger = e.target.closest('.custom-dropdown-trigger');
+  if (uniList && !uniList.contains(e.target) && !uniTrigger) {
+    uniList.classList.remove('active');
+  }
   if (list && !list.contains(e.target) && e.target !== input) {
     list.classList.remove('active');
   }
@@ -604,8 +680,10 @@ function removeFaculty(id) {
 function finishOnboarding() { appState.onboarded = true; saveState(); hideOnboarding(); navigate('dashboard'); updateSidebarUser(); }
 function updateSidebarUser() {
   const n = document.getElementById('sidebarUserName'); const l = document.getElementById('sidebarUserLevel');
+  const avatar = document.getElementById('sidebarAvatar');
   if (n) n.textContent = appState.currentUser?.name || 'นักเรียน';
   if (l) l.textContent = (appState.grade || 'ม.5') + ' — ' + (appState.track || 'สายวิทย์');
+  if (avatar) avatar.innerHTML = renderAvatarHtml(appState.currentUser, 36);
 }
 
 // ========== Activity Management ==========
@@ -643,6 +721,9 @@ function openProfileModal() {
   document.getElementById('profileModal').style.display = 'flex';
   document.getElementById('profName').value = appState.currentUser?.name || '';
   document.getElementById('profBio').value = appState.currentUser?.bio || '';
+  document.getElementById('profAvatarUrl').value = appState.currentUser?.avatarUrl || '';
+  document.getElementById('profHeadline').value = appState.currentUser?.headline || '';
+  document.getElementById('profSchool').value = appState.currentUser?.school || '';
   document.getElementById('profGrade').value = appState.grade || 'ม.4';
   document.getElementById('profTrack').value = appState.track || 'วิทย์-คณิต';
   document.getElementById('profPublic').checked = !!appState.currentUser?.isPublic;
@@ -652,13 +733,19 @@ document.getElementById('profileForm').addEventListener('submit', async e => {
   e.preventDefault();
   const name = document.getElementById('profName').value;
   const bio = document.getElementById('profBio').value;
+  const avatarUrl = document.getElementById('profAvatarUrl').value;
+  const headline = document.getElementById('profHeadline').value;
+  const school = document.getElementById('profSchool').value;
   const grade = document.getElementById('profGrade').value;
   const track = document.getElementById('profTrack').value;
   const isPublic = document.getElementById('profPublic').checked;
-  
-  if(appState.currentUser) {
+
+  if (appState.currentUser) {
     appState.currentUser.name = name;
     appState.currentUser.bio = bio;
+    appState.currentUser.avatarUrl = avatarUrl;
+    appState.currentUser.headline = headline;
+    appState.currentUser.school = school;
     appState.currentUser.isPublic = isPublic;
   }
   appState.grade = grade;
@@ -677,21 +764,21 @@ function showNotification(msg, type = 'info') {
     container.id = 'notification-container';
     document.body.appendChild(container);
   }
-  
+
   const toast = document.createElement('div');
   toast.className = `custom-toast toast-${type}`;
-  
+
   let icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
   if (type === 'error') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
   if (type === 'success') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
   if (type === 'warning') icon = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
-  
+
   toast.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
   container.appendChild(toast);
-  
+
   // force reflow
   toast.offsetHeight;
-  
+
   toast.classList.add('show');
   setTimeout(() => {
     toast.classList.remove('show');
