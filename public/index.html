@@ -166,12 +166,7 @@
       </ul>
       <div class="sidebar-footer" style="flex-direction:column; align-items:flex-start; gap:12px;">
         <div style="display:flex; align-items:center; gap:10px; width:100%;">
-          <div class="user-avatar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-          </div>
+          <div class="user-avatar" id="sidebarAvatar"></div>
           <div class="user-info" style="flex: 1; cursor: pointer;" onclick="openProfileModal()">
             <span class="user-name" id="sidebarUserName">นักเรียน</span>
             <span class="user-level" id="sidebarUserLevel">ม.5 — สายวิทย์</span>
@@ -342,8 +337,25 @@
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label>รูปโปรไฟล์ (URL)</label>
+            <input type="url" id="profAvatarUrl" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Tagline</label>
+            <input type="text" id="profHeadline" placeholder="เช่น Future Software Engineer">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>โรงเรียน</label>
+          <input type="text" id="profSchool" placeholder="เช่น โรงเรียนสวนกุหลาบวิทยาลัย">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
             <label>ชั้นปี</label>
             <select id="profGrade">
+              <option value="ม.1">ม.1</option>
+              <option value="ม.2">ม.2</option>
+              <option value="ม.3">ม.3</option>
               <option value="ม.4">ม.4</option>
               <option value="ม.5">ม.5</option>
               <option value="ม.6">ม.6</option>
@@ -353,6 +365,8 @@
             <label>สายการเรียน</label>
             <select id="profTrack">
               <option value="วิทย์-คณิต">วิทย์-คณิต</option>
+              <option value="วิทย์-วิศวะ">วิทย์-วิศวะ</option>
+              <option value="วิทย์-คอม">วิทย์-คอม</option>
               <option value="ศิลป์-คำนวณ">ศิลป์-คำนวณ</option>
               <option value="ศิลป์-ภาษา">ศิลป์-ภาษา</option>
               <option value="ศิลป์-สังคม">ศิลป์-สังคม</option>
