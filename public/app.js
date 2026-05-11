@@ -4,6 +4,17 @@ const GRADE_OPTIONS = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
 const TRACK_OPTIONS = ['วิทย์-คณิต', 'วิทย์-วิศวะ', 'วิทย์-คอม', 'ศิลป์-คำนวณ', 'ศิลป์-ภาษา', 'ศิลป์-สังคม'];
 let selectedUniversity = '';
 
+const ICON_UNIVERSITY = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
+const ICON_SEARCH = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+const ICON_CHECK = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+const ICON_CROSS = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+const ICON_WARNING = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+const ICON_DOT = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg>';
+const ICON_STAR = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+const ICON_ROBOT = '<svg class="ai-robot-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><circle cx="8" cy="15" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="15" r="1" fill="currentColor" stroke="none"/><path d="M9 21h6"/></svg>';
+const ICON_TRASH = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+const ICON_CLOSE = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
 function escapeHtml(text) {
   return String(text || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
@@ -12,6 +23,71 @@ function getInitials(name) {
   const value = String(name || '').trim();
   if (!value) return 'นร';
   return value.split(/\s+/).slice(0, 2).map((s) => s[0]).join('').toUpperCase();
+}
+
+function closeAllCustomSelects() {
+  document.querySelectorAll('.custom-select-trigger').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.custom-select-options').forEach(l => l.classList.remove('active'));
+}
+
+document.addEventListener('click', () => closeAllCustomSelects());
+
+function enhanceCustomSelects() {
+  document.querySelectorAll('select.custom-select').forEach(select => {
+    if (select.dataset.enhanced) return;
+    select.dataset.enhanced = 'true';
+    select.style.display = 'none';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'custom-select-trigger';
+
+    const optionsList = document.createElement('div');
+    optionsList.className = 'custom-select-options';
+
+    function rebuildOptions() {
+      const opts = Array.from(select.querySelectorAll('option'));
+      optionsList.innerHTML = opts.map(opt =>
+        `<div class="custom-select-option ${opt.selected ? 'selected' : ''}" data-value="${escapeHtml(opt.value)}">${escapeHtml(opt.text)}</div>`
+      ).join('');
+
+      const selected = select.querySelector('option:checked');
+      trigger.innerHTML = `<span>${selected ? escapeHtml(selected.text) : ''}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+
+      optionsList.querySelectorAll('.custom-select-option').forEach(el => {
+        el.addEventListener('click', e => {
+          e.stopPropagation();
+          select.value = el.dataset.value;
+          optionsList.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+          el.classList.add('selected');
+          trigger.classList.remove('active');
+          optionsList.classList.remove('active');
+          const selectedOpt = select.querySelector('option:checked');
+          trigger.innerHTML = `<span>${selectedOpt ? escapeHtml(selectedOpt.text) : ''}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+          select.dispatchEvent(new Event('change'));
+        });
+      });
+    }
+
+    rebuildOptions();
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(optionsList);
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const isActive = trigger.classList.contains('active');
+      closeAllCustomSelects();
+      if (!isActive) {
+        trigger.classList.add('active');
+        optionsList.classList.add('active');
+      }
+    });
+  });
 }
 
 function renderAvatarHtml(user = appState.currentUser, size = 36) {
@@ -90,13 +166,13 @@ function renderDashboard() {
 
   <div class="dash-grid">
     <div class="ai-card">
-      <h3>AI Matching — ${fac ? fac.name + ' ' + fac.uni : 'ยังไม่ได้เลือกคณะ'}</h3>
+      <h3>${ICON_ROBOT} AI Matching — ${fac ? fac.name + ' ' + fac.uni : 'ยังไม่ได้เลือกคณะ'}</h3>
       <div class="ai-verdict ai-verdict-${ai.verdictType}">
         <strong>${ai.verdict}</strong>
       </div>
-      ${ai.strengths.length ? '<div style="margin-top:10px"><strong style="color:#6EE7B7">✓ จุดแข็ง</strong></div>' + ai.strengths.map(s => `<div class="ai-item" style="border-color:rgba(110,231,183,.3)"><span class="ai-icon" style="color:#6EE7B7">✓</span><div><strong>${s.message}</strong><br><span style="opacity:.7;font-size:.78rem">${s.detail}</span></div></div>`).join('') : ''}
-      ${ai.gaps.length ? '<div style="margin-top:10px"><strong style="color:#FCA5A5">✗ ช่องว่าง</strong></div>' + ai.gaps.map(g => `<div class="ai-item" style="border-color:rgba(252,165,165,.3)"><span class="ai-icon" style="color:${g.severity === 'critical' ? '#EF4444' : g.severity === 'high' ? '#F59E0B' : '#60A5FA'}">●</span><div><strong>${g.message}</strong><br><span style="opacity:.7;font-size:.78rem">${g.detail}</span></div></div>`).join('') : ''}
-      ${ai.warnings.length ? ai.warnings.map(w => `<div class="ai-item" style="border-color:rgba(251,191,36,.3)"><span class="ai-icon" style="color:#FBBF24">⚠</span><div style="font-size:.82rem">${w}</div></div>`).join('') : ''}
+      ${ai.strengths.length ? '<div style="margin-top:10px"><strong style="color:#6EE7B7">' + ICON_CHECK + ' จุดแข็ง</strong></div>' + ai.strengths.map(s => `<div class="ai-item" style="border-color:rgba(110,231,183,.3)"><span class="ai-icon" style="color:#6EE7B7">${ICON_CHECK}</span><div><strong>${s.message}</strong><br><span style="opacity:.7;font-size:.78rem">${s.detail}</span></div></div>`).join('') : ''}
+      ${ai.gaps.length ? '<div style="margin-top:10px"><strong style="color:#FCA5A5">' + ICON_CROSS + ' ช่องว่าง</strong></div>' + ai.gaps.map(g => `<div class="ai-item" style="border-color:rgba(252,165,165,.3)"><span class="ai-icon" style="color:${g.severity === 'critical' ? '#EF4444' : g.severity === 'high' ? '#F59E0B' : '#60A5FA'}">${ICON_DOT}</span><div><strong>${g.message}</strong><br><span style="opacity:.7;font-size:.78rem">${g.detail}</span></div></div>`).join('') : ''}
+      ${ai.warnings.length ? ai.warnings.map(w => `<div class="ai-item" style="border-color:rgba(251,191,36,.3)"><span class="ai-icon" style="color:#FBBF24">${ICON_WARNING}</span><div style="font-size:.82rem">${w}</div></div>`).join('') : ''}
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;font-size:.72rem;opacity:.6">
         <span>กิจกรรม: ${ai.stats.totalActivities}</span>
         <span>เสร็จ: ${ai.stats.completedActivities}</span>
@@ -228,7 +304,7 @@ function renderRoadmap() {
       const isActivity = it.date !== undefined;
       return `<div class="roadmap-block status-${st}" style="background:${getCatBg(it.type)};border-color:${catColor}">
         <div style="padding-right:12px;">${it.name}${isDeadlineSoon && st === 'planned' ? '<span class="deadline-badge">ใกล้ถึง!</span>' : ''}</div>
-        <button class="roadmap-delete-btn" onclick="event.stopPropagation(); ${isActivity ? `deleteActivity(${it.id})` : `deleteRoadmapItem(${it.id})`}" title="ลบ">✕</button>
+        <button class="roadmap-delete-btn" onclick="event.stopPropagation(); ${isActivity ? `deleteActivity(${it.id})` : `deleteRoadmapItem(${it.id})`}" title="ลบ">${ICON_CLOSE}</button>
       </div>`;
     }).join('')}${items.length === 0 ? '<div style="font-size:.7rem;color:var(--gray-300);text-align:center;padding:8px">—</div>' : ''}</div>
         </div>`;
@@ -256,7 +332,7 @@ function renderGlobal() {
   
   <div class="dash-grid" style="grid-template-columns: 1fr;">
     <div class="card" style="text-align:center; padding:40px 20px;">
-      <h3 style="margin-bottom:12px;">🌟 แรงบันดาลใจจากเพื่อนๆ 🌟</h3>
+      <h3 style="margin-bottom:12px;">${ICON_STAR} แรงบันดาลใจจากเพื่อนๆ ${ICON_STAR}</h3>
       <p style="color:var(--gray-400); margin-bottom: 24px;">ดูพอร์ตที่น่าสนใจของคนที่เปิดสาธารณะ</p>
       
       <div id="publicUsersGrid" class="dash-grid-3">
@@ -315,7 +391,7 @@ function renderRate() {
         <div class="form-group" style="text-align:center; margin-bottom: 24px;">
           <label style="font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display:block;">คุณให้คะแนนเรากี่ดาว?</label>
           <div class="star-rating" id="starRating" style="font-size: 2.5rem; color: var(--gray-300); cursor: pointer; display: flex; justify-content: center; gap: 8px;">
-            <span data-val="1" onmouseenter="hoverStars(1)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="2" onmouseenter="hoverStars(2)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="3" onmouseenter="hoverStars(3)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="4" onmouseenter="hoverStars(4)" onmouseleave="resetStarHover()">&#9733;</span><span data-val="5" onmouseenter="hoverStars(5)" onmouseleave="resetStarHover()">&#9733;</span>
+            <span data-val="1" onmouseenter="hoverStars(1)" onmouseleave="resetStarHover()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span data-val="2" onmouseenter="hoverStars(2)" onmouseleave="resetStarHover()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span data-val="3" onmouseenter="hoverStars(3)" onmouseleave="resetStarHover()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span data-val="4" onmouseenter="hoverStars(4)" onmouseleave="resetStarHover()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span data-val="5" onmouseenter="hoverStars(5)" onmouseleave="resetStarHover()"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
           </div>
           <input type="hidden" id="rateStars" value="0">
         </div>
@@ -545,7 +621,7 @@ function renderOnboardingStep() {
 
       <div class="search-dropdown custom-dropdown">
         <button type="button" class="custom-dropdown-trigger" onclick="toggleUniversityDropdown()">
-          <span>${selectedUniversity || '🏫 เลือกมหาวิทยาลัย'}</span>
+          <span>${selectedUniversity ? escapeHtml(selectedUniversity) : ICON_UNIVERSITY + ' เลือกมหาวิทยาลัย'}</span>
           <span>▾</span>
         </button>
         <div class="search-dropdown-list" id="universityList">
@@ -554,7 +630,7 @@ function renderOnboardingStep() {
       </div>
 
       <div class="search-dropdown" style="margin-top: 12px;">
-        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="🔍 ค้นหาสาขา/หลักสูตรปริญญาตรี..." style="padding: 16px; font-size: 1.05rem;" oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
+        <input type="text" class="search-dropdown-input" id="facultySearch" placeholder="ค้นหาสาขา/หลักสูตรปริญญาตรี..." style="padding: 16px; font-size: 1.05rem;" oninput="filterFaculties(this.value)" onfocus="document.getElementById('facultyList').classList.add('active')">
         <div class="search-dropdown-list" id="facultyList">
           ${renderFacultyDropdownItems(getFilteredFaculties())}
         </div>
@@ -706,7 +782,7 @@ function renderSelectedFaculties() {
     const f = FACULTIES.find(x => x.id === id);
     if (!f) return '';
     return `<div class="tag" style="background:var(--primary-light); color:white; padding:6px 12px; font-size:0.8rem;">
-      ${f.emoji} ${f.name} (${f.uni}) <span style="cursor:pointer; margin-left:6px; font-weight:800;" onclick="removeFaculty('${id}')">×</span>
+      ${f.emoji} ${f.name} (${f.uni}) <span style="cursor:pointer; margin-left:6px; font-weight:800; display:inline-flex; align-items:center;" onclick="removeFaculty('${id}')">${ICON_CLOSE}</span>
     </div>`;
   }).join('');
 }
@@ -739,7 +815,7 @@ function updateSidebarUser() {
 }
 
 // ========== Activity Management ==========
-function openActivityModal() { document.getElementById('addActivityModal').style.display = 'flex'; }
+function openActivityModal() { document.getElementById('addActivityModal').style.display = 'flex'; setTimeout(enhanceCustomSelects, 10); }
 function closeActivityModal() { document.getElementById('addActivityModal').style.display = 'none'; document.getElementById('activityForm').reset(); }
 document.getElementById('activityForm').addEventListener('submit', e => {
   e.preventDefault();
@@ -773,19 +849,28 @@ function openProfileModal() {
   document.getElementById('profileModal').style.display = 'flex';
   document.getElementById('profName').value = appState.currentUser?.name || '';
   document.getElementById('profBio').value = appState.currentUser?.bio || '';
-  document.getElementById('profAvatarUrl').value = appState.currentUser?.avatarUrl || '';
   document.getElementById('profHeadline').value = appState.currentUser?.headline || '';
   document.getElementById('profSchool').value = appState.currentUser?.school || '';
   document.getElementById('profGrade').value = appState.grade || 'ม.4';
   document.getElementById('profTrack').value = appState.track || 'วิทย์-คณิต';
   document.getElementById('profPublic').checked = !!appState.currentUser?.isPublic;
+
+  const preview = document.getElementById('profileAvatarPreview');
+  const avatarUrl = appState.currentUser?.avatarUrl || '';
+  if (preview && avatarUrl) {
+    preview.style.display = 'flex';
+    preview.querySelector('img').src = avatarUrl;
+  } else if (preview) {
+    preview.style.display = 'none';
+  }
+
+  setTimeout(enhanceCustomSelects, 10);
 }
 function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
 document.getElementById('profileForm').addEventListener('submit', async e => {
   e.preventDefault();
   const name = document.getElementById('profName').value;
   const bio = document.getElementById('profBio').value;
-  const avatarUrl = document.getElementById('profAvatarUrl').value;
   const headline = document.getElementById('profHeadline').value;
   const school = document.getElementById('profSchool').value;
   const grade = document.getElementById('profGrade').value;
@@ -795,7 +880,6 @@ document.getElementById('profileForm').addEventListener('submit', async e => {
   if (appState.currentUser) {
     appState.currentUser.name = name;
     appState.currentUser.bio = bio;
-    appState.currentUser.avatarUrl = avatarUrl;
     appState.currentUser.headline = headline;
     appState.currentUser.school = school;
     appState.currentUser.isPublic = isPublic;
@@ -807,6 +891,40 @@ document.getElementById('profileForm').addEventListener('submit', async e => {
   closeProfileModal();
   showNotification('อัพเดตโปรไฟล์เรียบร้อยแล้ว!', 'success');
 });
+
+// Activity certificate file upload
+const certUploadArea = document.getElementById('fileUploadArea');
+if (certUploadArea) {
+  certUploadArea.addEventListener('click', () => {
+    const certInput = document.getElementById('actCert');
+    if (certInput) certInput.click();
+  });
+}
+
+// Profile image file upload
+const profileUploadArea = document.getElementById('profileUploadArea');
+if (profileUploadArea) {
+  profileUploadArea.addEventListener('click', () => document.getElementById('profAvatarFile').click());
+  const profAvatarFile = document.getElementById('profAvatarFile');
+  if (profAvatarFile) {
+    profAvatarFile.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          if (!appState.currentUser) appState.currentUser = {};
+          appState.currentUser.avatarUrl = ev.target.result;
+          const preview = document.getElementById('profileAvatarPreview');
+          if (preview) {
+            preview.style.display = 'flex';
+            preview.querySelector('img').src = ev.target.result;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+}
 
 // ========== Notifications ==========
 function showNotification(msg, type = 'info') {
