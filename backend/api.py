@@ -125,6 +125,127 @@ def fetch_all():
     cache_set("all", items)
     return items
 
+MYTCAS_API_BASE = "https://my-tcas.s3.ap-southeast-1.amazonaws.com/mytcas"
+
+def build_default_reqs(program_name, group_field_th="", field_name_th="", program_type_name_th="", major_acceptance_number=None):
+    # Base profile, then specialize by official TCAS taxonomy fields.
+    req = {
+        "academic":{"min":2,"th":"วิชาการ","en":"Academic"},
+        "volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"},
+        "leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"},
+        "sport_art":{"min":0,"th":"กีฬา/ศิลปะ","en":"Sports/Art"},
+        "language":{"min":1,"th":"ภาษา","en":"Language"},
+    }
+
+    haystack = " ".join([
+        str(program_name or ""),
+        str(group_field_th or ""),
+        str(field_name_th or ""),
+        str(program_type_name_th or "")
+    ]).lower()
+
+    # Health sciences
+    if any(k in haystack for k in ["แพทย", "ทันต", "เภสัช", "พยาบาล", "สาธารณสุข", "เทคนิคการแพทย์", "สัตวแพทย"]):
+        req["academic"]["min"] = 3
+        req["volunteer"]["min"] = 2
+        req["leadership"]["min"] = max(req["leadership"]["min"], 1)
+
+    # Engineering + IT/Computer/Tech
+    elif any(k in haystack for k in ["วิศว", "วิทยาการคอม", "คอมพิวเตอร์", "เทคโนโลยีสารสนเทศ", "ไอที", "ดิจิทัล", "ข้อมูล"]):
+        req["academic"]["min"] = 3
+        req["language"]["min"] = max(req["language"]["min"], 1)
+        req["leadership"]["min"] = max(req["leadership"]["min"], 1)
+
+    # Business / Law / Political / Economics / Social science
+    elif any(k in haystack for k in ["นิติ", "รัฐศาสตร์", "บริหาร", "บัญชี", "เศรษฐ", "รัฐประศาสน", "สังคม"]):
+        req["academic"]["min"] = max(req["academic"]["min"], 2)
+        req["leadership"]["min"] = 2
+        req["language"]["min"] = max(req["language"]["min"], 1)
+
+    # Language / humanities / arts
+    elif any(k in haystack for k in ["ภาษา", "อักษร", "มนุษย", "ศิลปศาสตร์", "นิเทศ", "วารสาร"]):
+        req["language"]["min"] = 3
+        req["academic"]["min"] = max(req["academic"]["min"], 1)
+        req["volunteer"]["min"] = max(req["volunteer"]["min"], 1)
+
+    # Fine arts / design / architecture / music
+    if any(k in haystack for k in ["ศิลป", "ดนตรี", "ออกแบบ", "สถาปัต", "นาฏ", "แฟชั่น"]):
+        req["sport_art"]["min"] = max(req["sport_art"]["min"], 2)
+        req["academic"]["min"] = max(req["academic"]["min"], 1)
+
+    # Education majors tend to value service and leadership
+    if any(k in haystack for k in ["ครุ", "ศึกษา", "พลศึกษา", "สุขศึกษา"]):
+        req["volunteer"]["min"] = max(req["volunteer"]["min"], 2)
+        req["leadership"]["min"] = max(req["leadership"]["min"], 2)
+
+    # Competitiveness booster based on intake size.
+    # Smaller intake -> harder competition -> nudge academic requirement up.
+    try:
+        seats = int(major_acceptance_number) if major_acceptance_number not in (None, "") else None
+    except Exception:
+        seats = None
+    if seats is not None:
+        if seats <= 30:
+            req["academic"]["min"] = min(4, req["academic"]["min"] + 1)
+        elif seats <= 80:
+            req["academic"]["min"] = min(4, req["academic"]["min"] + 0)
+
+    return req
+
+def fetch_mytcas_faculties():
+    c = cached("mytcas_faculties")
+    if c:
+        return c
+    try:
+        r = http_req.get(f"{MYTCAS_API_BASE}/courses.json", headers=UA, timeout=30)
+        r.raise_for_status()
+        rows = r.json()
+        faculties = []
+        seen = set()
+        for row in rows:
+            uid = str(row.get("_id") or "").strip()
+            uni_th = (row.get("university_name_th") or "").strip()
+            if not uid or not uni_th:
+                continue
+            program_name = (row.get("program_name_th") or row.get("major_name_th") or row.get("course_name_th") or row.get("faculty_name_th") or "").strip()
+            faculty_name = (row.get("faculty_name_th") or program_name or "").strip()
+            if not program_name:
+                continue
+            fid = f"tcas_{uid}"
+            if fid in seen:
+                continue
+            seen.add(fid)
+            faculties.append({
+                "id": fid,
+                "uni_th": uni_th,
+                "uni_en": (row.get("university_name_en") or "").strip(),
+                "fac_th": program_name,
+                "fac_en": (row.get("program_name_en") or row.get("faculty_name_en") or "").strip(),
+                "faculty_group_th": faculty_name,
+                "group_field_th": (row.get("group_field_th") or "").strip(),
+                "field_name_th": (row.get("field_name_th") or "").strip(),
+                "campus_th": (row.get("campus_name_th") or "").strip(),
+                "major_acceptance_number": row.get("major_acceptance_number"),
+                "source": "mytcas",
+                "reqs": build_default_reqs(
+                    program_name=program_name,
+                    group_field_th=row.get("group_field_th"),
+                    field_name_th=row.get("field_name_th"),
+                    program_type_name_th=row.get("program_type_name_th"),
+                    major_acceptance_number=row.get("major_acceptance_number"),
+                ),
+            })
+        faculties.sort(key=lambda x: (x["uni_th"], x["fac_th"]))
+        cache_set("mytcas_faculties", faculties)
+        return faculties
+    except Exception as e:
+        print(f"[WARN] mytcas fetch failed: {e}")
+        return []
+
+def get_faculties_dataset():
+    dynamic = fetch_mytcas_faculties()
+    return dynamic if dynamic else FACULTIES
+
 FACULTIES = [
     # === จุฬาลงกรณ์มหาวิทยาลัย ===
     {"id":"eng_cu","uni_th":"จุฬาลงกรณ์มหาวิทยาลัย","uni_en":"Chulalongkorn","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
@@ -268,6 +389,154 @@ FACULTIES = [
     {"id":"natres_psu","uni_th":"มหาวิทยาลัยสงขลานครินทร์","uni_en":"PSU","fac_th":"คณะทรัพยากรธรรมชาติ","fac_en":"Natural Resources",
      "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
 
+    # === ม.นเรศวร (NU) ===
+    {"id":"med_nu","uni_th":"มหาวิทยาลัยนเรศวร","uni_en":"Naresuan","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"eng_nu","uni_th":"มหาวิทยาลัยนเรศวร","uni_en":"Naresuan","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"sci_nu","uni_th":"มหาวิทยาลัยนเรศวร","uni_en":"Naresuan","fac_th":"คณะวิทยาศาสตร์","fac_en":"Science",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arch_nu","uni_th":"มหาวิทยาลัยนเรศวร","uni_en":"Naresuan","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+    {"id":"com_nu","uni_th":"มหาวิทยาลัยนเรศวร","uni_en":"Naresuan","fac_th":"คณะสื่อสารมวลชน","fac_en":"Communication",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+
+    # === ม.พะเยา (UP) ===
+    {"id":"med_up","uni_th":"มหาวิทยาลัยพะเยา","uni_en":"Phayao","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"eng_up","uni_th":"มหาวิทยาลัยพะเยา","uni_en":"Phayao","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"it_up","uni_th":"มหาวิทยาลัยพะเยา","uni_en":"Phayao","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
+    # === ม.วลัยลักษณ์ (WU) ===
+    {"id":"med_wu","uni_th":"มหาวิทยาลัยวลัยลักษณ์","uni_en":"Walailak","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"eng_wu","uni_th":"มหาวิทยาลัยวลัยลักษณ์","uni_en":"Walailak","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"it_wu","uni_th":"มหาวิทยาลัยวลัยลักษณ์","uni_en":"Walailak","fac_th":"คณะวิทยาการคอมพิวเตอร์และสารสนเทศ","fac_en":"Computer & IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+    {"id":"nurse_wu","uni_th":"มหาวิทยาลัยวลัยลักษณ์","uni_en":"Walailak","fac_th":"คณะพยาบาลศาสตร์","fac_en":"Nursing",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":3,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.อุบลราชธานี (UBU) ===
+    {"id":"eng_ubu","uni_th":"มหาวิทยาลัยอุบลราชธานี","uni_en":"UBU","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"sci_ubu","uni_th":"มหาวิทยาลัยอุบลราชธานี","uni_en":"UBU","fac_th":"คณะวิทยาศาสตร์","fac_en":"Science",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.ศิลปากร (SU) ===
+    {"id":"arch_su","uni_th":"มหาวิทยาลัยศิลปากร","uni_en":"Silpakorn","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+    {"id":"arts_su","uni_th":"มหาวิทยาลัยศิลปากร","uni_en":"Silpakorn","fac_th":"คณะอักษรศาสตร์","fac_en":"Arts",
+     "reqs":{"language":{"min":3,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"commarts_su","uni_th":"มหาวิทยาลัยศิลปากร","uni_en":"Silpakorn","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"music_su","uni_th":"มหาวิทยาลัยศิลปากร","uni_en":"Silpakorn","fac_th":"คณะดนตรีและการแสดง","fac_en":"Music & Performing Arts",
+     "reqs":{"sport_art":{"min":4,"th":"ศิลปะ","en":"Art"}}},
+
+    # === ม.รังสิต (RSU) ===
+    {"id":"med_rsu","uni_th":"มหาวิทยาลัยรังสิต","uni_en":"Rangsit","fac_th":"คณะแพทยศาสตร์","fac_en":"Medicine",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"eng_rsu","uni_th":"มหาวิทยาลัยรังสิต","uni_en":"Rangsit","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"comm_rsu","uni_th":"มหาวิทยาลัยรังสิต","uni_en":"Rangsit","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"law_rsu","uni_th":"มหาวิทยาลัยรังสิต","uni_en":"Rangsit","fac_th":"คณะนิติศาสตร์","fac_en":"Law",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+
+    # === ม.อัสสัมชัญ (ABAC) ===
+    {"id":"bus_abac","uni_th":"มหาวิทยาลัยอัสสัมชัญ","uni_en":"ABAC","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"comm_abac","uni_th":"มหาวิทยาลัยอัสสัมชัญ","uni_en":"ABAC","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"arts_abac","uni_th":"มหาวิทยาลัยอัสสัมชัญ","uni_en":"ABAC","fac_th":"คณะศิลปกรรมศาสตร์","fac_en":"Fine Arts",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"}}},
+    {"id":"law_abac","uni_th":"มหาวิทยาลัยอัสสัมชัญ","uni_en":"ABAC","fac_th":"คณะนิติศาสตร์","fac_en":"Law",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+
+    # === ม.หอการค้าไทย (UTCC) ===
+    {"id":"bus_utcc","uni_th":"มหาวิทยาลัยหอการค้าไทย","uni_en":"UTCC","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"acc_utcc","uni_th":"มหาวิทยาลัยหอการค้าไทย","uni_en":"UTCC","fac_th":"คณะบัญชี","fac_en":"Accountancy",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":1,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"it_utcc","uni_th":"มหาวิทยาลัยหอการค้าไทย","uni_en":"UTCC","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
+    # === ม.กรุงเทพ (BU) ===
+    {"id":"arts_bu","uni_th":"มหาวิทยาลัยกรุงเทพ","uni_en":"Bangkok","fac_th":"คณะศิลปกรรมศาสตร์","fac_en":"Fine Arts",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"}}},
+    {"id":"comm_bu","uni_th":"มหาวิทยาลัยกรุงเทพ","uni_en":"Bangkok","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"eng_bu","uni_th":"มหาวิทยาลัยกรุงเทพ","uni_en":"Bangkok","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.เทคโนโลยีพระจอมเกล้าพระนครเหนือ (KMUTNB) ===
+    {"id":"eng_kmutnb","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ","uni_en":"KMUTNB","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":3,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"it_kmutnb","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ","uni_en":"KMUTNB","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+    {"id":"sci_kmutnb","uni_th":"มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ","uni_en":"KMUTNB","fac_th":"คณะวิทยาศาสตร์ประยุกต์","fac_en":"Applied Science",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.เทคโนโลยีราชมงคลธัญบุรี (RMUTT) ===
+    {"id":"eng_rmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","uni_en":"RMUTT","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"it_rmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","uni_en":"RMUTT","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+    {"id":"bus_rmutt","uni_th":"มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี","uni_en":"RMUTT","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+
+    # === ม.สุโขทัยธรรมาธิราช (STOU) ===
+    {"id":"edu_stou","uni_th":"มหาวิทยาลัยสุโขทัยธรรมาธิราช","uni_en":"STOU","fac_th":"คณะศึกษาศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"arts_stou","uni_th":"มหาวิทยาลัยสุโขทัยธรรมาธิราช","uni_en":"STOU","fac_th":"คณะมนุษยศาสตร์และสังคมศาสตร์","fac_en":"Humanities & Social Sciences",
+     "reqs":{"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.เทคโนโลยีมหานคร (MUT) ===
+    {"id":"eng_mut","uni_th":"มหาวิทยาลัยเทคโนโลยีมหานคร","uni_en":"MUT","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"it_mut","uni_th":"มหาวิทยาลัยเทคโนโลยีมหานคร","uni_en":"MUT","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+    {"id":"arch_mut","uni_th":"มหาวิทยาลัยเทคโนโลยีมหานคร","uni_en":"MUT","fac_th":"คณะสถาปัตยกรรมศาสตร์","fac_en":"Architecture",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"},"academic":{"min":1,"th":"วิชาการ","en":"Academic"}}},
+
+    # === ม.ธุรกิจบัณฑิตย์ (DPU) ===
+    {"id":"bus_dpu","uni_th":"มหาวิทยาลัยธุรกิจบัณฑิตย์","uni_en":"DPU","fac_th":"คณะบริหารธุรกิจ","fac_en":"Business",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"comm_dpu","uni_th":"มหาวิทยาลัยธุรกิจบัณฑิตย์","uni_en":"DPU","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"it_dpu","uni_th":"มหาวิทยาลัยธุรกิจบัณฑิตย์","uni_en":"DPU","fac_th":"คณะเทคโนโลยีสารสนเทศ","fac_en":"IT",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"language":{"min":1,"th":"ภาษา","en":"Language"}}},
+
+    # === ม.สยาม (SU-Siam) ===
+    {"id":"comm_siam","uni_th":"มหาวิทยาลัยสยาม","uni_en":"Siam","fac_th":"คณะนิเทศศาสตร์","fac_en":"Communication Arts",
+     "reqs":{"sport_art":{"min":2,"th":"ศิลปะ","en":"Art"},"language":{"min":2,"th":"ภาษา","en":"Language"}}},
+    {"id":"eng_siam","uni_th":"มหาวิทยาลัยสยาม","uni_en":"Siam","fac_th":"คณะวิศวกรรมศาสตร์","fac_en":"Engineering",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+    {"id":"arts_siam","uni_th":"มหาวิทยาลัยสยาม","uni_en":"Siam","fac_th":"คณะศิลปกรรมศาสตร์","fac_en":"Fine Arts",
+     "reqs":{"sport_art":{"min":3,"th":"ศิลปะ","en":"Art"}}},
+
+    # === ม.ราชภัฏสวนสุนันทา (SSRU) ===
+    {"id":"edu_ssru","uni_th":"มหาวิทยาลัยราชภัฏสวนสุนันทา","uni_en":"SSRU","fac_th":"คณะครุศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"arts_ssru","uni_th":"มหาวิทยาลัยราชภัฏสวนสุนันทา","uni_en":"SSRU","fac_th":"คณะมนุษยศาสตร์และสังคมศาสตร์","fac_en":"Humanities & Social Sciences",
+     "reqs":{"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.ราชภัฏจันทรเกษม (CRU) ===
+    {"id":"edu_cru","uni_th":"มหาวิทยาลัยราชภัฏจันทรเกษม","uni_en":"CRU","fac_th":"คณะศึกษาศาสตร์","fac_en":"Education",
+     "reqs":{"volunteer":{"min":2,"th":"จิตอาสา","en":"Volunteer"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"sci_cru","uni_th":"มหาวิทยาลัยราชภัฏจันทรเกษม","uni_en":"CRU","fac_th":"คณะวิทยาศาสตร์และเทคโนโลยี","fac_en":"Science & Technology",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
+    # === ม.รามคำแหง (RU) ===
+    {"id":"law_ru","uni_th":"มหาวิทยาลัยรามคำแหง","uni_en":"Ramkhamhaeng","fac_th":"คณะนิติศาสตร์","fac_en":"Law",
+     "reqs":{"academic":{"min":2,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"bus_ru","uni_th":"มหาวิทยาลัยรามคำแหง","uni_en":"Ramkhamhaeng","fac_th":"คณะพาณิชยศาสตร์และการบัญชี","fac_en":"Commerce & Accountancy",
+     "reqs":{"academic":{"min":1,"th":"วิชาการ","en":"Academic"},"leadership":{"min":2,"th":"ผู้นำ","en":"Leadership"}}},
+    {"id":"arts_ru","uni_th":"มหาวิทยาลัยรามคำแหง","uni_en":"Ramkhamhaeng","fac_th":"คณะมนุษยศาสตร์","fac_en":"Humanities",
+     "reqs":{"language":{"min":2,"th":"ภาษา","en":"Language"},"volunteer":{"min":1,"th":"จิตอาสา","en":"Volunteer"}}},
+
 ]
 
 TCAS_DEADLINE = "2026-12-20T23:59:59"
@@ -301,18 +570,19 @@ def recommended():
 
 @app.route('/api/faculties')
 def faculties():
-    return jsonify(FACULTIES)
+    return jsonify(get_faculties_dataset())
 
 @app.route('/api/faculties/<fid>')
 def faculty(fid):
-    for f in FACULTIES:
+    for f in get_faculties_dataset():
         if f['id']==fid: return jsonify(f)
     return jsonify({"error":"Not found"}), 404
 
 @app.route('/api/university-programs')
 def university_programs():
+    faculties = get_faculties_dataset()
     grouped = {}
-    for f in FACULTIES:
+    for f in faculties:
         uni = f.get("uni_th") or f.get("uni_en") or ""
         if not uni:
             continue
@@ -321,6 +591,11 @@ def university_programs():
         grouped[uni]["programs"].append({
             "id": f.get("id"),
             "name": f.get("fac_th") or f.get("fac_en") or "",
+            "faculty_group": f.get("faculty_group_th") or "",
+            "group_field": f.get("group_field_th") or "",
+            "field_name": f.get("field_name_th") or "",
+            "campus": f.get("campus_th") or "",
+            "major_acceptance_number": f.get("major_acceptance_number"),
             "reqs": f.get("reqs", {}),
         })
     result = list(grouped.values())
