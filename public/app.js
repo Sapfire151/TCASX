@@ -238,9 +238,28 @@ function renderPortfolio() {
     ${filtered.length ? filtered.map(a => `
       <div class="activity-card">
         <div class="activity-icon" style="background:${getCatBg(a.type)}">${TYPE_EMOJIS[a.type]}</div>
-        <div class="activity-info"><h4>${a.name}</h4><p>${LEVEL_LABELS[a.level]} · ${STATUS_LABELS[a.status]}${a.desc ? ' · ' + a.desc : ''}</p></div>
-        <div class="activity-meta"><span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span><br><span class="date">${a.date || ''}</span></div>
-        <button class="btn btn-sm btn-secondary" onclick="deleteActivity(${a.id})" title="ลบ"><svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
+        <div class="activity-info">
+          <h4>${a.name}</h4>
+          <p>${LEVEL_LABELS[a.level]} · ${STATUS_LABELS[a.status]}${a.desc ? ' · ' + a.desc : ''}</p>
+          ${a.certificate ? `
+            <div class="certificate-attachment" style="margin-top: 8px; padding: 8px; background: var(--gray-100); border-radius: 4px; font-size: 0.85rem;">
+              <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <a href="${a.certificate}" target="_blank" style="color: var(--primary); text-decoration: none; margin-left: 4px;">${a.certificateName || 'ใบรับรอง'}</a>
+            </div>
+          ` : ''}
+        </div>
+        <div class="activity-meta">
+          <span class="tag tag-${a.type}">${TYPE_LABELS[a.type]}</span><br>
+          <span class="date">${a.date || ''}</span>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="deleteActivity(${a.id})" title="ลบ">
+          <svg width="1.2em" height="1.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
       </div>
     `).join('') : `<div class="empty-state"><h3>ยังไม่มีกิจกรรม</h3><p>เริ่มเพิ่มกิจกรรมเพื่อสร้างพอร์ตฟอลิโอของคุณ</p><button class="btn btn-primary" onclick="openActivityModal()">+ เพิ่มกิจกรรม</button></div>`}
   </div>`;
@@ -272,6 +291,7 @@ function renderExplore() {
           <h3>${a.name}</h3>
           <div class="explore-card-meta">
             <span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> ${a.deadline}</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> ${a.spots} คน</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg> ระดับ${a.cert}</span>
+            <span style="color: var(--gray-500); font-size: 0.8rem;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ${a.month ? MONTHS[a.month - 1] : 'ไม่ระบุ'}</span>
           </div>
           <div style="display:flex;gap:8px;flex-direction:row">
             <button class="btn btn-primary btn-sm" style="flex:1" onclick="addToRoadmapFromExplore(${a.id})">+ เพิ่มใน Roadmap</button>
@@ -285,33 +305,82 @@ function getCatGrad(t) { return { academic: '#818CF8,#6366F1', volunteer: '#F472
 
 // ========== Roadmap ==========
 function renderRoadmap() {
-  const now = new Date().getMonth();
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  // Get all items with dates
+  const allItems = [
+    ...appState.activities.map(a => ({ ...a, itemType: 'activity', date: a.date ? new Date(a.date) : null })),
+    ...appState.roadmap.map(r => ({ ...r, itemType: 'roadmap', date: r.month ? new Date(currentYear, r.month - 1, 1) : null }))
+  ].filter(item => item.date);
+
+  // Group by date
+  const itemsByDate = {};
+  allItems.forEach(item => {
+    const dateStr = item.date.toISOString().split('T')[0];
+    if (!itemsByDate[dateStr]) itemsByDate[dateStr] = [];
+    itemsByDate[dateStr].push(item);
+  });
+
+  // Sort dates
+  const sortedDates = Object.keys(itemsByDate).sort();
+
   document.getElementById('mainContent').innerHTML = `
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-    <div><h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg> Roadmap</h1><p style="color:var(--gray-400);font-size:.85rem">แผนกิจกรรมตลอดทั้งปี</p></div>
+    <div><h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg> Roadmap</h1><p style="color:var(--gray-400);font-size:.85rem">ปฏิทินกิจกรรม</p></div>
     <button class="btn btn-primary btn-sm" onclick="openActivityModal()">+ เพิ่มกิจกรรม</button>
   </div>
-  <div class="roadmap-container">
-    <div class="roadmap-timeline">
-      ${MONTHS.map((m, i) => {
-    const items = [...appState.roadmap.filter(r => r.month === i + 1), ...appState.activities.filter(a => a.date && new Date(a.date).getMonth() === i)];
-    return `<div class="roadmap-month">
-          <div class="roadmap-month-header ${i === now ? 'current' : ''}">${m}</div>
-          <div class="roadmap-items">${items.map(it => {
-      const st = it.status || 'planned';
-      const catColor = { academic: 'var(--cat-academic)', volunteer: 'var(--cat-volunteer)', leadership: 'var(--cat-leadership)', sport_art: 'var(--cat-sport)', language: 'var(--cat-language)' }[it.type] || 'var(--gray-400)';
-      const isDeadlineSoon = it.month && it.month === now + 1;
-      const isActivity = it.date !== undefined;
-      return `<div class="roadmap-block status-${st}" style="background:${getCatBg(it.type)};border-color:${catColor}">
-        <div style="padding-right:12px;">${it.name}${isDeadlineSoon && st === 'planned' ? '<span class="deadline-badge">ใกล้ถึง!</span>' : ''}</div>
-        <button class="roadmap-delete-btn" onclick="event.stopPropagation(); ${isActivity ? `deleteActivity(${it.id})` : `deleteRoadmapItem(${it.id})`}" title="ลบ">${ICON_CLOSE}</button>
+  <div class="calendar-container" style="max-width: 1000px; margin: 0 auto;">
+    ${sortedDates.map(dateStr => {
+      const date = new Date(dateStr);
+      const items = itemsByDate[dateStr];
+      const isToday = dateStr === now.toISOString().split('T')[0];
+      const isPast = date < now;
+      const dayOfWeek = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'][date.getDay()];
+      const day = date.getDate();
+      const month = MONTHS[date.getMonth()];
+      
+      return `
+      <div class="calendar-day" style="border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 12px; background: ${isToday ? 'var(--primary-light)' : 'var(--bg)'};">
+        <div class="calendar-date-header" style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 1.2rem; font-weight: 700; color: ${isToday ? 'var(--primary)' : 'var(--text)'};">
+            ${day} ${month}
+          </div>
+          <div style="font-size: 0.9rem; color: var(--gray-400);">${dayOfWeek}</div>
+          ${isToday ? '<span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">วันนี้</span>' : ''}
+          ${isPast && !isToday ? '<span style="background: var(--gray-200); color: var(--gray-600); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem;">ผ่านไปแล้ว</span>' : ''}
+        </div>
+        <div class="calendar-items">
+          ${items.map(item => {
+            const st = item.status || 'planned';
+            const catColor = { academic: 'var(--cat-academic)', volunteer: 'var(--cat-volunteer)', leadership: 'var(--cat-leadership)', sport_art: 'var(--cat-sport)', language: 'var(--cat-language)' }[item.type] || 'var(--gray-400)';
+            const isActivity = item.itemType === 'activity';
+            const isDeadlineSoon = item.month && (item.month === currentMonth + 1 || item.month === 1 && currentMonth === 11);
+            
+            return `
+            <div class="calendar-item" style="background: ${getCatBg(item.type)}; border-left: 4px solid ${catColor}; padding: 12px; margin-bottom: 8px; border-radius: 4px; position: relative;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600; margin-bottom: 4px;">${item.name}</div>
+                  <div style="font-size: 0.8rem; color: var(--gray-600); display: flex; align-items: center; gap: 4px;">
+                    ${TYPE_EMOJIS[item.type]} ${TYPE_LABELS[item.type]}
+                    ${isDeadlineSoon && st === 'planned' ? '<span class="deadline-badge" style="background: var(--red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem;">ใกล้ถึง!</span>' : ''}
+                  </div>
+                </div>
+                <button class="calendar-delete-btn" onclick="event.stopPropagation(); ${isActivity ? `deleteActivity(${item.id})` : `deleteRoadmapItem(${item.id})`}" title="ลบ" style="background: none; border: none; color: var(--gray-400); cursor: pointer; padding: 4px;">
+                  ${ICON_CLOSE}
+                </button>
+              </div>
+            </div>`;
+          }).join('')}
+          ${items.length === 0 ? '<div style="font-size: 0.85rem; color: var(--gray-400); text-align: center; padding: 16px;">ไม่มีกิจกรรมในวันนี้</div>' : ''}
+        </div>
       </div>`;
-    }).join('')}${items.length === 0 ? '<div style="font-size:.7rem;color:var(--gray-300);text-align:center;padding:8px">—</div>' : ''}</div>
-        </div>`;
-  }).join('')}
-    </div>
+    }).join('')}
+    ${sortedDates.length === 0 ? '<div style="text-align: center; padding: 60px 20px; color: var(--gray-400);"><h3>ยังไม่มีกิจกรรมที่วางแผนไว้</h3><p>เริ่มวางแผนกิจกรรมของคุณเพื่อติดตามเป้าหมาย TCAS ได้เลย!</p></div>' : ''}
   </div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:16px">
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:24px;padding: 0 20px;">
     ${Object.entries(TYPE_LABELS).map(([k, v]) => `<div style="display:flex;align-items:center;gap:6px;font-size:.78rem"><div style="width:12px;height:12px;border-radius:3px;background:var(--cat-${k === 'sport_art' ? 'sport' : k})"></div>${v}</div>`).join('')}
     <div style="display:flex;align-items:center;gap:12px;font-size:.75rem;color:var(--gray-400);margin-left:auto">
       <span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> วางแผน</span><span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" style="vertical-align:middle; opacity:0.5;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg> กำลังสมัคร</span><span style="text-decoration:line-through"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ผ่านแล้ว</span>
@@ -349,7 +418,10 @@ async function loadPublicUsers() {
     let html = '';
     snap.forEach(doc => {
       const data = doc.data();
+      const userId = doc.id;
       const pct = Math.min(100, Math.round((data.activities?.length || 0) * 15));
+      const activities = data.activities || [];
+      
       html += `
         <div class="card" style="border: 1px solid var(--border); box-shadow:none; text-align:left;">
           <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
@@ -361,7 +433,43 @@ async function loadPublicUsers() {
           </div>
           <div class="stat-bar" style="margin-bottom:12px;"><div class="stat-bar-fill" style="width:${pct}%;background:var(--primary)"></div></div>
           <p style="font-size:0.8rem; margin-bottom:12px;">${data.bio || 'ไม่มีข้อมูลแนะนำตัว'}</p>
-          <button class="btn btn-secondary btn-sm btn-full" disabled>ดูพอร์ตฟอลิโอ</button>
+          
+          <div style="margin-bottom:12px;">
+            <button class="btn btn-secondary btn-sm" onclick="toggleUserPortfolio('${userId}')">
+              <span id="portfolio-toggle-${userId}">ดูพอร์ตฟอลิโอ</span>
+            </button>
+          </div>
+          
+          <div id="user-portfolio-${userId}" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+            <h4 style="margin-bottom:12px; font-size:1.1rem;">กิจกรรม (${activities.length} รายการ)</h4>
+            <div style="max-height:400px; overflow-y:auto;">
+              ${activities.length > 0 ? activities.map(a => `
+                <div class="activity-card" style="margin-bottom:8px; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px;">
+                  <div class="activity-icon" style="background:${getCatBg(a.type)}; width:32px; height:32px; display:flex; align-items:center; justify-content:center; font-size:14px;">
+                    ${TYPE_EMOJIS[a.type]}
+                  </div>
+                  <div class="activity-info" style="flex:1;">
+                    <h5 style="margin:0 0 4px 0; font-size:0.95rem;">${a.name}</h5>
+                    <p style="margin:0 0 4px 0; font-size:0.8rem; color:var(--gray-600);">
+                      ${LEVEL_LABELS[a.level]} · ${STATUS_LABELS[a.status]}${a.date ? ' · ' + a.date : ''}
+                    </p>
+                    ${a.desc ? `<p style="margin:0; font-size:0.8rem; color:var(--gray-500);">${a.desc}</p>` : ''}
+                    ${a.certificate ? `
+                      <div style="margin-top:6px; padding:6px; background:var(--gray-100); border-radius:4px; font-size:0.8rem;">
+                        <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="16" y1="13" x2="8" y2="13"></line>
+                          <line x1="16" y1="17" x2="8" y2="17"></line>
+                        </svg>
+                        <a href="${a.certificate}" target="_blank" style="color: var(--primary); text-decoration: none; margin-left:4px;">${a.certificateName || 'ใบรับรอง'}</a>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('') : '<p style="text-align:center; color:var(--gray-400); padding:20px;">ยังไม่มีกิจกรรม</p>'}
+            </div>
+          </div>
         </div>
       `;
     });
@@ -372,6 +480,21 @@ async function loadPublicUsers() {
     const grid = document.getElementById('publicUsersGrid');
     if (grid) grid.innerHTML = '<p style="grid-column: 1/-1; color:var(--red); text-align:center;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
     console.error("Error loading public users:", e);
+  }
+}
+
+function toggleUserPortfolio(userId) {
+  const portfolio = document.getElementById(`user-portfolio-${userId}`);
+  const toggle = document.getElementById(`portfolio-toggle-${userId}`);
+  
+  if (portfolio && toggle) {
+    if (portfolio.style.display === 'none') {
+      portfolio.style.display = 'block';
+      toggle.textContent = 'ซ่อนพอร์ตฟอลิโอ';
+    } else {
+      portfolio.style.display = 'none';
+      toggle.textContent = 'ดูพอร์ตฟอลิโอ';
+    }
   }
 }
 
@@ -415,13 +538,113 @@ let _selectedStars = 0;
 function hoverStars(n) { document.querySelectorAll('#starRating span').forEach((s, i) => s.style.color = i < n ? 'var(--orange)' : 'var(--gray-300)'); }
 function resetStarHover() { const v = parseInt(document.getElementById('rateStars')?.value || 0); document.querySelectorAll('#starRating span').forEach((s, i) => s.style.color = i < v ? 'var(--orange)' : 'var(--gray-300)'); }
 
+// Custom spam detection
+function detectSpam(text) {
+  const lowerText = text.toLowerCase().trim();
+  
+  // Bad words and inappropriate content patterns
+  const spamPatterns = [
+    // Thai bad words
+    /ไอ้|ควย|หี|เหี้ยา|ชาติ|สัด|สันดาน|กาน|เฮีย|หำ|เย็ด|โป้|ดอก|อีด้อ|อีดู่|อีดี้|อีดึ้|อีดั้|อีด่อ|อีด๊|อีดอ|อีด้อ|อีดี|อีดัก|อีดอก|อีดอด|อีดอ้อ|อีดอ่|อีดอ๊|อีดออ|อีดอ้อ|อีดอ่ก|อีดออก|อีดออด|อีดออ้อ|อีดออ่|อีดออ๊|อีดอออ|อีดออ้อ|อีดออ่|อีดอออก|อีดอออด|อีดอออ้อ|อีดอออ่|อีดอออ๊|อีดออออ|อีดอออ้อ|อีดอออ่|อีดออออก|อีดออออด|อีดออออ้อ|อีดออออ่|อีดออออ๊|อีดอออออ|อีดออออ้อ|อีดออออ่|อีดอออออก|อีดอออออด|อีดอออออ้อ|อีดอออออ่|อีดอออออ๊|อีดออออออ|อีดอออออ้อ|อีดอออออ่|อีดออออออก|อีดออออออด|อีดออออออ้อ|อีดออออออ่|อีดออออออ๊|อีดอออออออ|อีดออออออ้อ|อีดออออออ่|อีดอออออออก|อีดอออออออด|อีดอออออออ้อ|อีดอออออออ่|อีดอออออออ๊|อีดออออออออ|อีดออออออออ้อ|อีดออออออออ่|อีดออออออออก|อีดออออออออด|อีดออออออออ้อ|อีดออออออออ่|อีดออออออออ๊|อีดอออออออออ|อีดอออออออออ้อ|อีดอออออออออ่|อีดอออออออออก/,
+    // English bad words
+    /fuck|shit|ass|bitch|cunt|dick|pussy|cock|tits|nigger|nigga|whore|slut|bastard|damn|hell/,
+    // Spam patterns
+    /(.)\1{3,}/, // Repeated characters
+    /^[A-Z\s]+$/i, // All caps
+    /(https?:\/\/[^\s]+)/, // URLs
+    /\b\d{10,}\b/, // Phone numbers
+    /[^\x00-\x7F]+/, // Non-ASCII characters (potential Unicode spam)
+  ];
+  
+  // Check for spam patterns
+  let spamScore = 0;
+  spamPatterns.forEach(pattern => {
+    if (pattern.test(lowerText)) spamScore += 10;
+  });
+  
+  // Check length (too short or too long)
+  if (lowerText.length < 5) spamScore += 5;
+  if (lowerText.length > 1000) spamScore += 5;
+  
+  // Check for excessive punctuation
+  const punctuationCount = (lowerText.match(/[!?.,;:]/g) || []).length;
+  if (punctuationCount > lowerText.length * 0.1) spamScore += 3;
+  
+  // Check for repeated words
+  const words = lowerText.split(/\s+/);
+  const uniqueWords = new Set(words);
+  if (words.length > uniqueWords.size * 2) spamScore += 5;
+  
+  return {
+    isSpam: spamScore >= 10,
+    score: spamScore,
+    reasons: spamScore >= 10 ? [
+      spamScore >= 20 ? 'High spam probability' : 'Moderate spam probability',
+      'Contains inappropriate content or spam patterns'
+    ] : []
+  };
+}
+
+// Akismet integration (fallback if available)
+async function checkAkismet(comment, author, email) {
+  try {
+    const akismetUrl = 'https://rest.akismet.com/1.1/comment-check';
+    const params = new URLSearchParams({
+      blog: 'https://tcasx.app',
+      user_ip: '127.0.0.1', // Would need real IP in production
+      user_agent: navigator.userAgent,
+      comment_content: comment,
+      comment_author: author,
+      comment_author_email: email
+    });
+    
+    const response = await fetch(akismetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    
+    const result = await response.text();
+    return result === 'true'; // Akismet returns 'true' for spam
+  } catch (e) {
+    console.warn('Akismet check failed:', e);
+    return false; // Don't block on Akismet failure
+  }
+}
+
 async function submitRate(e) {
   e.preventDefault();
   const stars = document.getElementById('rateStars').value;
   const comment = document.getElementById('rateComment').value;
   if (stars === "0") { showNotification('กรุณาเลือกจำนวนดาว', 'warning'); return; }
+  
+  // Custom spam detection
+  const spamCheck = detectSpam(comment);
+  if (spamCheck.isSpam) {
+    showNotification('ความคิดเห็นถูกตรวจพบว่ามีเนื้อหาหรือไม่เหมาะสม', 'error');
+    return;
+  }
+  
   const btn = document.getElementById('rateSubmitBtn');
-  btn.disabled = true; btn.innerText = 'กำลังส่ง...';
+  btn.disabled = true; btn.innerText = 'กำลังตรวจสอบ...';
+  
+  // Akismet check (async)
+  const isAkismetSpam = await checkAkismet(
+    comment, 
+    appState.currentUser?.name || 'Anonymous', 
+    appState.currentUser?.username || ''
+  );
+  
+  if (isAkismetSpam) {
+    showNotification('ความคิดเห็นถูกรองด้วยระบบบอัตโนมัติ', 'error');
+    btn.disabled = false;
+    btn.innerText = 'ส่งความคิดเห็น';
+    return;
+  }
+  
+  btn.innerText = 'กำลังส่ง...';
   const webhookUrl = 'https://discord.com/api/webhooks/1503041111969632427/IevVUfYevqaBQXW0sY_sNnJxEqsMsFTDD9rm88j_NifwFEiGyAzPvao-RoCB7ojzfUJP';
   const payload = {
     embeds: [{
@@ -494,7 +717,15 @@ async function completeLogin(user) {
   appState.currentUser = { name: user.displayName || user.email, username: user.email };
 
   try {
-    // Fetch user data from Firestore
+    // Load user-specific state from localStorage first
+    const storageKey = `tcasx_state_${user.uid}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      Object.assign(appState, parsed);
+    }
+
+    // Then fetch and merge with Firestore data
     const doc = await db.collection('users').doc(user.uid).get();
     if (doc.exists) {
       const data = doc.data();
@@ -521,10 +752,6 @@ async function completeLogin(user) {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appWrapper').style.display = 'block';
   updateSidebarUser();
-  let validFaculty = false;
-  if (appState.faculties && appState.faculties.length > 0) {
-    validFaculty = !!FACULTIES.find(f => f.id === appState.faculties[0]);
-  }
   if (!appState.onboarded || !validFaculty) {
     if (FACULTIES.length > 0) {
       appState.onboarded = false;
@@ -538,47 +765,28 @@ async function completeLogin(user) {
   }
 }
 
-function logout() {
-  auth.signOut().then(() => {
-    appState.isAuthenticated = false;
-    appState.currentUser = null;
-    saveState();
-    document.getElementById('appWrapper').style.display = 'none';
-    document.getElementById('authScreen').style.display = 'flex';
-  });
+async function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    const result = await auth.signInWithPopup(provider);
+    await completeLogin(result.user);
+  } catch (error) {
+    showNotification("Google Sign In Error: " + error.message, 'error');
+  }
 }
 
-function initApp() {
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      if (!appState.isAuthenticated) {
-        await completeLogin(user);
-      } else {
-        document.getElementById('authScreen').style.display = 'none';
-        document.getElementById('appWrapper').style.display = 'block';
-        updateSidebarUser();
-        let validFaculty = false;
-        if (appState.faculties && appState.faculties.length > 0) {
-          validFaculty = !!FACULTIES.find(f => f.id === appState.faculties[0]);
-        }
-        if (!appState.onboarded || !validFaculty) {
-          if (FACULTIES.length > 0) { // Only force reset if API is actually loaded
-            appState.onboarded = false;
-            appState.faculties = [];
-            showOnboarding();
-          } else {
-            navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
-          }
-        } else {
-          navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
-        }
-      }
-    } else {
-      appState.isAuthenticated = false;
-      document.getElementById('appWrapper').style.display = 'none';
-      document.getElementById('authScreen').style.display = 'flex';
-    }
-  });
+async function logout() {
+  const user = auth.currentUser;
+  if (user) {
+    // Clear user-specific localStorage
+    localStorage.removeItem(`tcasx_state_${user.uid}`);
+  }
+  await auth.signOut();
+  appState.isAuthenticated = false;
+  appState.currentUser = null;
+  saveState();
+  document.getElementById('appWrapper').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
 }
 
 // ========== Onboarding ==========
@@ -673,6 +881,11 @@ function selectTrack(t, el) { appState.track = t; saveState(); el.parentElement.
 function getUniqueUniversities() {
   return [...new Set(FACULTIES.map(f => f.uni))].sort((a, b) => a.localeCompare(b, 'th'));
 }
+function getUniversitySearchTerms(uni) {
+  const aliases = getUniAliases(uni);
+  const uniEn = FACULTIES.find(f => f.uni === uni)?.uniEn || '';
+  return [uni, uniEn, ...aliases].filter(Boolean).map(s => s.toLowerCase());
+}
 function getTrackKeywords(track) {
   const map = {
     'วิทย์-คณิต': ['วิทย', 'วิศว', 'คอม', 'เทคโนโลยี', 'ข้อมูล', 'แพทย', 'เภสัช', 'ทันต', 'พยาบาล', 'วิทยาการ'],
@@ -686,7 +899,7 @@ function getTrackKeywords(track) {
 }
 function scoreFacultyForUser(faculty, query = '') {
   const q = query.toLowerCase().trim();
-  const haystack = `${faculty.name} ${faculty.uni} ${faculty.facultyGroup || ''} ${faculty.groupField || ''} ${faculty.fieldName || ''}`.toLowerCase();
+  const haystack = `${faculty.name} ${faculty.nameEn || ''} ${faculty.uni} ${faculty.uniEn || ''} ${faculty.facultyGroup || ''} ${faculty.groupField || ''} ${faculty.fieldName || ''}`.toLowerCase();
   let score = 0;
 
   // query relevance
@@ -722,7 +935,7 @@ function getFilteredFaculties(query = '') {
   const filtered = FACULTIES.filter(f => {
     if (selectedUniversity && f.uni !== selectedUniversity) return false;
     if (!q) return true;
-    const search = `${f.name} ${f.uni} ${f.facultyGroup || ''} ${f.groupField || ''} ${f.fieldName || ''}`.toLowerCase();
+    const search = `${f.name} ${f.nameEn || ''} ${f.uni} ${f.uniEn || ''} ${f.facultyGroup || ''} ${f.groupField || ''} ${f.fieldName || ''}`.toLowerCase();
     return search.includes(q);
   });
   return filtered
@@ -731,12 +944,17 @@ function getFilteredFaculties(query = '') {
 }
 function renderUniversityDropdownItems() {
   const universities = getUniqueUniversities();
-  return universities.map((uni) => `
+  return universities.map((uni) => {
+    const uniEn = FACULTIES.find(f => f.uni === uni)?.uniEn || '';
+    const count = FACULTIES.filter(f => f.uni === uni).length;
+    const display = uniEn ? `${uni} (${uniEn})` : uni;
+    return `
     <div class="search-item" onclick="selectUniversity('${uni.replace(/'/g, "\\'")}')">
-      <div class="search-item-title">${uni}</div>
-      <div class="search-item-subtitle">${FACULTIES.filter(f => f.uni === uni).length} หลักสูตร</div>
+      <div class="search-item-title">${display}</div>
+      <div class="search-item-subtitle">${count} หลักสูตร</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 function toggleUniversityDropdown() {
   const list = document.getElementById('universityList');
@@ -751,12 +969,17 @@ function selectUniversity(uni) {
   renderOnboardingStep();
 }
 function renderFacultyDropdownItems(facs) {
-  return facs.map(f => `
+  return facs.map(f => {
+    const displayName = f.nameEn ? `${f.name} (${f.nameEn})` : f.name;
+    const uniDisplay = f.uniEn ? `${f.uni} (${f.uniEn})` : f.uni;
+    const subtitle = `${uniDisplay}${f.facultyGroup ? ` • ${f.facultyGroup}` : ''}${f.campus ? ` • ${f.campus}` : ''}${f.seats ? ` • รับ ${f.seats} คน` : ''}`;
+    return `
     <div class="search-item" onclick="selectFacultyFromDropdown('${f.id}')">
-      <div class="search-item-title"><span>${f.emoji}</span> ${f.name}</div>
-      <div class="search-item-subtitle">${f.uni}${f.facultyGroup ? ` • ${f.facultyGroup}` : ''}${f.campus ? ` • ${f.campus}` : ''}${f.seats ? ` • รับ ${f.seats} คน` : ''}</div>
+      <div class="search-item-title"><span>${f.emoji}</span> ${displayName}</div>
+      <div class="search-item-subtitle">${subtitle}</div>
     </div>
-  `).join('') || `<div class="search-item" style="color:var(--gray-400); text-align:center;">ไม่พบข้อมูล</div>`;
+  `;
+  }).join('') || `<div class="search-item" style="color:var(--gray-400); text-align:center;">ไม่พบข้อมูล</div>`;
 }
 function filterFaculties(query) {
   const list = document.getElementById('facultyList');
@@ -819,12 +1042,37 @@ function openActivityModal() { document.getElementById('addActivityModal').style
 function closeActivityModal() { document.getElementById('addActivityModal').style.display = 'none'; document.getElementById('activityForm').reset(); }
 document.getElementById('activityForm').addEventListener('submit', e => {
   e.preventDefault();
-  const a = {
-    id: Date.now(), name: document.getElementById('actName').value, type: document.getElementById('actType').value,
-    level: document.getElementById('actLevel').value, date: document.getElementById('actDate').value,
-    status: document.getElementById('actStatus').value, desc: document.getElementById('actDesc').value
-  };
-  appState.activities.push(a); saveState(); closeActivityModal(); navigate(currentPage);
+  const certFile = document.getElementById('actCert').files[0];
+  let certData = null;
+  
+  if (certFile) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      certData = event.target.result;
+      saveActivityWithCert();
+    };
+    reader.readAsDataURL(certFile);
+  } else {
+    saveActivityWithCert();
+  }
+  
+  function saveActivityWithCert() {
+    const a = {
+      id: Date.now(), 
+      name: document.getElementById('actName').value, 
+      type: document.getElementById('actType').value,
+      level: document.getElementById('actLevel').value, 
+      date: document.getElementById('actDate').value,
+      status: document.getElementById('actStatus').value, 
+      desc: document.getElementById('actDesc').value,
+      certificate: certData,
+      certificateName: certFile ? certFile.name : null
+    };
+    appState.activities.push(a); 
+    saveState(); 
+    closeActivityModal(); 
+    navigate(currentPage);
+  }
 });
 function deleteActivity(id) { appState.activities = appState.activities.filter(a => a.id !== id); saveState(); navigate(currentPage); }
 function addToRoadmapFromExplore(eid) {
