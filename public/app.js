@@ -101,14 +101,33 @@ function renderAvatarHtml(user = appState.currentUser, size = 36) {
 
 function navigate(page) {
   currentPage = page;
-  document.querySelectorAll('.nav-link,.tab-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
   const main = document.getElementById('mainContent');
-  main.style.animation = 'none'; main.offsetHeight; main.style.animation = 'fadeIn .3s ease';
-  try {
-    const renderers = { dashboard: renderDashboard, portfolio: renderPortfolio, explore: renderExplore, roadmap: renderRoadmap, global: renderGlobal, rate: renderRate };
-    (renderers[page] || renderDashboard)();
-  } catch (e) { console.error('Navigate error:', e); renderDashboard(); }
+  const navs = document.querySelectorAll('.nav-link');
+  navs.forEach(n => n.classList.remove('active'));
+  const activeNav = document.querySelector(`[data-page="${page}"]`);
+  if (activeNav) activeNav.classList.add('active');
+  
+  // Add page transition animation
+  main.classList.add('page-transition');
+  
+  // Render the page content
+  switch(page) {
+    case 'dashboard': renderDashboard(); break;
+    case 'roadmap': renderRoadmap(); break;
+    case 'portfolio': renderPortfolio(); break;
+    case 'explore': renderExplore(); break;
+    case 'global': renderGlobal(); break;
+    case 'profile': renderProfile(); break;
+    case 'rate': renderRate(); break;
+    default: renderDashboard();
+  }
+  
+  // Remove animation class after animation completes
+  setTimeout(() => {
+    main.classList.remove('page-transition');
+  }, 400);
 }
+
 document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.page); }));
 
 // ========== SVG Helpers ==========
@@ -211,11 +230,9 @@ function renderDashboard() {
 // ========== Portfolio ==========
 let portfolioFilter = 'all';
 function renderPortfolio() {
-  const scores = getScores(), reqs = getTargetReqs();
+  const analysis = runAIAnalysis();
   const filtered = portfolioFilter === 'all' ? appState.activities : appState.activities.filter(a => a.type === portfolioFilter);
-  const gaps = Object.keys(reqs).filter(k => reqs[k] > 0 && (scores[k] || 0) < reqs[k]);
-  const strongs = Object.keys(reqs).filter(k => reqs[k] > 0 && (scores[k] || 0) >= reqs[k]);
-
+  
   document.getElementById('mainContent').innerHTML = `
   <div class="portfolio-header">
     <h1 style="font-size:1.4rem;font-weight:800;display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg> My Portfolio</h1>
@@ -227,10 +244,11 @@ function renderPortfolio() {
   ).join('')}
   </div>
   <div class="score-section">
-    <div class="card score-ring-card">${progressRingSVG(getCompletionPct(), 130, 10)}<p style="margin-top:12px;font-size:.85rem;color:var(--gray-400)">ความสมบูรณ์ของพอร์ต</p></div>
+    <div class="card score-ring-card">${progressRingSVG(analysis.overallScore, 130, 10)}<p style="margin-top:12px;font-size:.85rem;color:var(--gray-400)">คะแนน AI วิเคราะห์</p></div>
     <div>
-      ${gaps.length ? `<div class="gap-panel"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ยังขาด</h3>${gaps.map(k => `<div class="gap-item"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; color:var(--red);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> ${TYPE_LABELS[k]} — ต้องการเพิ่มอีก ${Math.max(0, reqs[k] - (scores[k] || 0))} คะแนน</div>`).join('')}</div>` : ''}
-      ${strongs.length ? `<div class="strength-panel" style="margin-top:12px"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> จุดแข็ง</h3>${strongs.map(k => `<div class="gap-item" style="color:#065F46"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${TYPE_LABELS[k]} — ผ่านเกณฑ์แล้ว</div>`).join('')}</div>` : ''}
+      ${analysis.gaps.length ? `<div class="gap-panel"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> ยังขาด</h3>${analysis.gaps.map(gap => `<div class="gap-item"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; color:var(--red);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> ${gap.message}</div>`).join('')}</div>` : ''}
+      ${analysis.strengths.length ? `<div class="strength-panel" style="margin-top:12px"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> จุดแข็ง</h3>${analysis.strengths.map(strength => `<div class="gap-item" style="color:#065F46"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> ${strength.message}</div>`).join('')}</div>` : ''}
+      ${analysis.recommendations.length ? `<div class="recommendation-panel" style="margin-top:12px"><h3 style="display:flex;align-items:center;gap:6px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M9 11H3v2h6v-2zm0-4H3v2h6V7zm0 8H3v2h6v-2zm12-8h-6v2h6V7zm0 4h-6v2h6v-2zm0 4h-6v2h6v-2z"></path></svg> คำแนะนำ AI</h3>${analysis.recommendations.map(rec => `<div class="gap-item" style="color:#4B5563"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> ${rec.message}</div>`).join('')}</div>` : ''}
     </div>
   </div>
   <h3 class="section-title" style="display:flex;align-items:center;gap:8px;"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> รายการกิจกรรม</h3>
@@ -242,9 +260,21 @@ function renderPortfolio() {
           <h4>${a.name}</h4>
           <p>${LEVEL_LABELS[a.level]} · ${STATUS_LABELS[a.status]}${a.desc ? ' · ' + a.desc : ''}</p>
           ${a.certificate ? `
-            <div class="certificate-attachment" style="margin-top: 8px; padding: 8px; background: var(--gray-100); border-radius: 4px; font-size: 0.85rem;">
-              <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              <a href="${a.certificate}" target="_blank" style="color: var(--primary); text-decoration: none; margin-left: 4px;">${a.certificateName || 'ใบรับรอง'}</a>
+            <div class="certificate-attachment" style="margin-top: 8px; border-radius: 4px; font-size: 0.85rem; overflow: hidden;">
+              ${a.certificate.startsWith('data:image') ? `
+                <div style="position: relative; width: 100%; height: 120px; border-radius: 4px; overflow: hidden;">
+                  <img src="${a.certificate}" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); cursor: pointer;" onclick="window.open('${a.certificate}', '_blank')">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white; padding: 8px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 0.8rem;">${a.certificateName || 'ใบรับรอง'}</span>
+                    <button onclick="window.open('${a.certificate}', '_blank')" style="background: var(--primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer;">ดูเต็ม</button>
+                  </div>
+                </div>
+              ` : `
+                <div style="padding: 8px; background: var(--gray-100); border-radius: 4px; display: flex; align-items: center; gap: 8px;">
+                  <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                  <a href="${a.certificate}" target="_blank" style="color: var(--primary); text-decoration: none; margin-left: 4px;">${a.certificateName || 'ใบรับรอง'}</a>
+                </div>
+              `}
             </div>
           ` : ''}
         </div>
@@ -720,6 +750,8 @@ async function completeLogin(user) {
     // Load user-specific state from localStorage first
     const storageKey = `tcasx_state_${user.uid}`;
     const saved = localStorage.getItem(storageKey);
+    let isNewUser = !saved;
+    
     if (saved) {
       const parsed = JSON.parse(saved);
       Object.assign(appState, parsed);
@@ -741,9 +773,27 @@ async function completeLogin(user) {
       appState.currentUser.avatarUrl = data.avatarUrl || '';
       appState.currentUser.headline = data.headline || '';
       appState.currentUser.school = data.school || '';
+      
+      // Check if user has completed onboarding
+      isNewUser = isNewUser && !data.onboarded;
+    } else {
+      // New user in Firestore
+      isNewUser = true;
     }
+
+    // Force onboarding for new users or users without proper setup
+    if (isNewUser || !appState.onboarded || !appState.faculties || appState.faculties.length === 0) {
+      appState.onboarded = false;
+      appState.faculties = [];
+      appState.grade = appState.grade || 'ม.5';
+      appState.track = appState.track || 'สายวิทย์';
+    }
+
   } catch (e) {
     console.error("Error fetching user data", e);
+    // Force onboarding on error
+    appState.onboarded = false;
+    appState.faculties = [];
   }
 
   saveState();
@@ -752,10 +802,10 @@ async function completeLogin(user) {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('appWrapper').style.display = 'block';
   updateSidebarUser();
-  if (!appState.onboarded || !validFaculty) {
+  
+  // Always check if onboarding is needed
+  if (!appState.onboarded || !appState.faculties || appState.faculties.length === 0) {
     if (FACULTIES.length > 0) {
-      appState.onboarded = false;
-      appState.faculties = [];
       showOnboarding();
     } else {
       navigate(currentPage === 'dashboard' ? 'dashboard' : currentPage);
@@ -847,6 +897,44 @@ function renderOnboardingStep() {
       <div id="selectedFaculties" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; margin-bottom:24px;">
         ${renderSelectedFaculties()}
       </div>
+      
+      ${appState.faculties.length > 0 ? `
+        <div id="requirementsAlert" style="margin-bottom: 24px; padding: 16px; background: var(--primary-light); border-radius: 8px; border-left: 4px solid var(--primary);">
+          <h4 style="margin: 0 0 12px 0; color: var(--primary-dark); font-size: 1rem; font-weight: 600;">
+            <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            คุณสมบัติที่ต้องเตรียม
+          </h4>
+          <div style="font-size: 0.9rem; color: var(--gray-700); line-height: 1.5;">
+            ${appState.faculties.map(facultyId => {
+              const faculty = FACULTIES.find(f => f.id === facultyId);
+              if (!faculty) return '';
+              return `
+                <div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
+                  <div style="font-weight: 600; margin-bottom: 8px; color: var(--text);">
+                    ${faculty.emoji} ${faculty.name} (${faculty.uni})
+                  </div>
+                  <div style="font-size: 0.85rem;">
+                    <strong>คุณสมบัติที่ต้องมี:</strong>
+                    <ul style="margin: 8px 0; padding-left: 20px;">
+                      ${Object.entries(faculty.reqs || {}).filter(([, v]) => v > 0).map(([k, v]) => {
+                        const requirement = faculty.reqs[k];
+                        return `<li style="margin-bottom: 4px;">
+                          ${TYPE_EMOJIS[k]} ${TYPE_LABELS[k]}: ต้องการ ${v} คะแนน
+                          ${requirement.details ? `<br><small style="color: var(--gray-600);">${requirement.details}</small>` : ''}
+                        </li>`;
+                      }).join('')}
+                    </ul>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
 
       <div class="ob-nav" style="margin-top: 40px;">
         <button class="btn btn-secondary" style="padding: 14px 24px; font-size: 1.1rem;" onclick="obStep=1;renderOnboardingStep()">← ย้อนกลับ</button>
@@ -1040,8 +1128,38 @@ function updateSidebarUser() {
 // ========== Activity Management ==========
 function openActivityModal() { document.getElementById('addActivityModal').style.display = 'flex'; setTimeout(enhanceCustomSelects, 10); }
 function closeActivityModal() { document.getElementById('addActivityModal').style.display = 'none'; document.getElementById('activityForm').reset(); }
+function validateActivityForm() {
+  const name = document.getElementById('actName').value.trim();
+  const type = document.getElementById('actType').value;
+  const level = document.getElementById('actLevel').value;
+  const date = document.getElementById('actDate').value;
+  const status = document.getElementById('actStatus').value;
+  const desc = document.getElementById('actDesc').value.trim();
+  
+  const errors = [];
+  
+  if (!name) errors.push('กรุณากรอกชื่อกิจกรรม');
+  if (!type) errors.push('กรุณาเลือกประเภทกิจกรรม');
+  if (!level) errors.push('กรุณาเลือกระดับกิจกรรม');
+  if (!date) errors.push('กรุณาเลือกวันที่');
+  if (!status) errors.push('กรุณาเลือกสถานะ');
+  if (!desc) errors.push('กรุณากรอกรายละเอียดเพิ่มเติม');
+  
+  if (errors.length > 0) {
+    showNotification('กรุณากรอกข้อมูลให้ครบถ้วน:\n' + errors.join('\n'), 'error');
+    return false;
+  }
+  
+  return true;
+}
+
 document.getElementById('activityForm').addEventListener('submit', e => {
   e.preventDefault();
+  
+  if (!validateActivityForm()) {
+    return;
+  }
+  
   const certFile = document.getElementById('actCert').files[0];
   let certData = null;
   
@@ -1059,12 +1177,12 @@ document.getElementById('activityForm').addEventListener('submit', e => {
   function saveActivityWithCert() {
     const a = {
       id: Date.now(), 
-      name: document.getElementById('actName').value, 
+      name: document.getElementById('actName').value.trim(), 
       type: document.getElementById('actType').value,
       level: document.getElementById('actLevel').value, 
       date: document.getElementById('actDate').value,
       status: document.getElementById('actStatus').value, 
-      desc: document.getElementById('actDesc').value,
+      desc: document.getElementById('actDesc').value.trim(),
       certificate: certData,
       certificateName: certFile ? certFile.name : null
     };
@@ -1082,9 +1200,55 @@ function addToRoadmapFromExplore(eid) {
   saveState(); showNotification('เพิ่มใน Roadmap แล้ว!', 'success');
 }
 
-// File upload area
+// File upload area with image preview
 const fua = document.getElementById('fileUploadArea');
-if (fua) { fua.addEventListener('click', () => document.getElementById('actCert').click()); }
+const certInput = document.getElementById('actCert');
+
+if (fua && certInput) {
+  fua.addEventListener('click', () => certInput.click());
+  
+  certInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        // Replace drag-drop area with image preview
+        fua.innerHTML = `
+          <div style="position: relative; width: 100%; height: 100%; border-radius: 8px; overflow: hidden;">
+            <img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.8);">
+            <div style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+              ${file.name}
+            </div>
+            <button type="button" onclick="clearImageUpload()" style="position: absolute; top: 8px; left: 8px; background: var(--red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+              ${ICON_CLOSE}
+            </button>
+          </div>
+        `;
+        fua.style.cursor = 'default';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function clearImageUpload() {
+  const certInput = document.getElementById('actCert');
+  const fua = document.getElementById('fileUploadArea');
+  
+  if (certInput) certInput.value = '';
+  if (fua) {
+    fua.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+      <span>ลากไฟล์มาวาง หรือ คลิกเพื่อเลือก</span>
+    `;
+    fua.style.cursor = 'pointer';
+    fua.addEventListener('click', () => certInput.click());
+  }
+}
 
 function deleteRoadmapItem(id) {
   appState.roadmap = appState.roadmap.filter(r => r.id !== id);
@@ -1112,8 +1276,53 @@ function openProfileModal() {
     preview.style.display = 'none';
   }
 
+  // Setup profile image upload
+  const profAvatarInput = document.getElementById('profAvatar');
+  const profAvatarArea = document.getElementById('profAvatarUploadArea');
+  
+  if (profAvatarInput && profAvatarArea) {
+    profAvatarArea.addEventListener('click', () => profAvatarInput.click());
+    
+    profAvatarInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          profAvatarArea.innerHTML = `
+            <div style="position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;">
+              <img src="${event.target.result}" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9);">
+              <button type="button" onclick="clearProfileImage()" style="position: absolute; top: 4px; right: 4px; background: var(--red); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                ${ICON_CLOSE}
+              </button>
+            </div>
+          `;
+          profAvatarArea.style.cursor = 'default';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
   setTimeout(enhanceCustomSelects, 10);
 }
+function clearProfileImage() {
+  const profAvatarInput = document.getElementById('profAvatar');
+  const profAvatarArea = document.getElementById('profAvatarUploadArea');
+  
+  if (profAvatarInput) profAvatarInput.value = '';
+  if (profAvatarArea) {
+    profAvatarArea.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 7l-7 5 7 4V7z" />
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+      </svg>
+      <span>อัปโหลดรูปโปรไฟล์</span>
+    `;
+    profAvatarArea.style.cursor = 'pointer';
+    profAvatarArea.addEventListener('click', () => profAvatarInput.click());
+  }
+}
+
 function closeProfileModal() { document.getElementById('profileModal').style.display = 'none'; }
 document.getElementById('profileForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1124,20 +1333,34 @@ document.getElementById('profileForm').addEventListener('submit', async e => {
   const grade = document.getElementById('profGrade').value;
   const track = document.getElementById('profTrack').value;
   const isPublic = document.getElementById('profPublic').checked;
+  const profAvatarInput = document.getElementById('profAvatar');
+  const avatarFile = profAvatarInput ? profAvatarInput.files[0] : null;
 
-  if (appState.currentUser) {
-    appState.currentUser.name = name;
-    appState.currentUser.bio = bio;
-    appState.currentUser.headline = headline;
-    appState.currentUser.school = school;
-    appState.currentUser.isPublic = isPublic;
+  // Handle avatar upload
+  if (avatarFile && appState.currentUser) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      appState.currentUser.avatarUrl = event.target.result;
+      saveState();
+      updateSidebarUser();
+      showNotification('อัพเดตโปรไฟล์เรียบร้อยแล้ว!', 'success');
+    };
+    reader.readAsDataURL(avatarFile);
+  } else {
+    if (appState.currentUser) {
+      appState.currentUser.name = name;
+      appState.currentUser.bio = bio;
+      appState.currentUser.headline = headline;
+      appState.currentUser.school = school;
+      appState.currentUser.isPublic = isPublic;
+    }
+    appState.grade = grade;
+    appState.track = track;
+    saveState();
+    updateSidebarUser();
+    closeProfileModal();
+    showNotification('อัพเดตโปรไฟล์เรียบร้อยแล้ว!', 'success');
   }
-  appState.grade = grade;
-  appState.track = track;
-  saveState();
-  updateSidebarUser();
-  closeProfileModal();
-  showNotification('อัพเดตโปรไฟล์เรียบร้อยแล้ว!', 'success');
 });
 
 // Activity certificate file upload
