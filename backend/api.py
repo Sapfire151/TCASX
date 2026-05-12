@@ -65,8 +65,9 @@ def fetch_cat(slug):
     ci = CATS.get(slug, {'type':'academic','th':'วิชาการ','en':'Academic'})
     url = f'https://www.camphub.in.th/{slug}'
     try:
-        r = http_req.get(url, headers=UA, timeout=15)
-        soup = BeautifulSoup(r.content, 'html.parser')
+        r = http_req.get(url, headers=UA, timeout=15, follow_redirects=True)
+        r.encoding = 'utf-8'
+        soup = BeautifulSoup(r.text, 'html.parser')
         arts = soup.find_all('article')
         res = []
         current_date = datetime.now()
