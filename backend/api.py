@@ -2,11 +2,11 @@
 TCASX Backend API — serves activity data from camp_parser + BeautifulSoup.
 Run: python api.py
 """
-import json, os, re, time, threading
+import os, sys, json, time, threading, concurrent.futures, hashlib, re
 from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import requests as http_req
+import httpx as http_req
 from bs4 import BeautifulSoup
 import concurrent.futures
 
@@ -69,6 +69,9 @@ def fetch_cat(slug):
         soup = BeautifulSoup(r.content, 'html.parser')
         arts = soup.find_all('article')
         res = []
+        current_date = datetime.now()
+        current_year = current_date.year
+        
         for a in arts:
             tt = a.find(['h2','h3','h4'])
             title = tt.text.strip() if tt else "Unknown"
@@ -77,11 +80,25 @@ def fetch_cat(slug):
             img = a.find('img')
             image = img.get('src','') if img else ''
             dl_str, spots = "", 50
+            is_outdated = False
+            
             if link and not os.environ.get("VERCEL"):
                 try:
                     dr = http_req.get(link, headers=UA, timeout=10)
                     ds = BeautifulSoup(dr.content, 'html.parser')
                     tx = ds.get_text()
+                    
+                    # Check for outdated indicators
+                    if any(indicator in tx for indicator in ["ปิดรับสมัคร", "หมดเวลา", "สิ้นสุดการรับสมัคร", "ผ่านไปแล้ว"]):
+                        is_outdated = True
+                    
+                    # Check for year indicators to filter old activities
+                    year_match = re.search(r'(20\d{2})', tx)
+                    if year_match:
+                        activity_year = int(year_match.group(1))
+                        if activity_year < current_year - 1:  # Filter out activities older than last year
+                            is_outdated = True
+                    
                     if "ปิดรับสมัคร" in tx:
                         i = tx.find("ปิดรับสมัคร")
                         dl_str = tx[i:i+40].replace('\n',' ').strip()
@@ -89,6 +106,11 @@ def fetch_cat(slug):
                         i = tx.find("จำนวนที่รับ")
                         spots = ex_num(tx[i:i+30])
                 except: pass
+            
+            # Skip outdated activities
+            if is_outdated:
+                continue
+                
             mo = ex_month(dl_str)
             dl_c = dl_str.split('(')[0].strip() if '(' in dl_str else dl_str.strip()
             if len(dl_c)>35: dl_c = dl_c[:32]+'...'
