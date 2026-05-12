@@ -983,6 +983,24 @@ body {
   padding: 20px;
 }
 
+.recommendation-panel h3 {
+  color: #4338CA;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: .84rem;
+  color: #4338CA;
+}
+
 .score-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
