@@ -438,7 +438,7 @@ function analyzeActivity(activity, reqs, targetFac) {
 }
 
 // ---- Load Data from Flask API ----
-const EXPIRED_KEYWORDS = ['ปิดรับสมัครแล้ว', 'หมดเขต', 'ปิดรับแล้ว', 'สิ้นสุดแล้ว'];
+const EXPIRED_KEYWORDS = ['ปิดรับสมัครแล้ว', 'หมดเขตแล้ว', 'ปิดรับแล้ว', 'สิ้นสุดแล้ว'];
 function isExpired(deadline) {
   return EXPIRED_KEYWORDS.some(kw => (deadline || '').includes(kw));
 }
