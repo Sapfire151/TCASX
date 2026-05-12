@@ -1429,6 +1429,31 @@ function showNotification(msg, type = 'info') {
 
 
 
+// Initialize app
+function initApp() {
+  // Hide preloader
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    setTimeout(() => {
+      preloader.classList.add('hidden');
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 500);
+    }, 800);
+  }
+  
+  loadState();
+  if (appState.isAuthenticated) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appWrapper').style.display = 'block';
+    updateSidebarUser();
+    navigate(currentPage);
+  } else {
+    document.getElementById('authScreen').style.display = 'flex';
+    document.getElementById('appWrapper').style.display = 'none';
+  }
+}
+
 // ========== Init ==========
 loadExternalData().then(() => {
   initApp();
