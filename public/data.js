@@ -48,6 +48,43 @@ const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.'
 const UNI_SVG = '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
 let FACULTIES = [];
 
+// Short-name & alias lookup for bilingual search
+const UNI_ALIASES = {
+  'จุฬาลงกรณ์มหาวิทยาลัย': ['CU', 'Chula', 'Chulalongkorn', 'จุฬา'],
+  'มหาวิทยาลัยธรรมศาสตร์': ['TU', 'Thammasat', 'ธรรมศาสตร์', 'มธ'],
+  'มหาวิทยาลัยมหิดล': ['MU', 'Mahidol', 'มหิดล', 'มม'],
+  'สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง': ['KMITL', 'ลาดกระบัง', 'สจล'],
+  'มหาวิทยาลัยเกษตรศาสตร์': ['KU', 'Kasetsart', 'เกษตร', 'มก'],
+  'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี': ['KMUTT', 'ธนบุรี', 'มจธ'],
+  'มหาวิทยาลัยเชียงใหม่': ['CMU', 'Chiang Mai', 'เชียงใหม่', 'มช'],
+  'มหาวิทยาลัยขอนแก่น': ['KKU', 'Khon Kaen', 'ขอนแก่น', 'มข'],
+  'มหาวิทยาลัยศรีนครินทรวิโรฒ': ['SWU', 'Srinakharinwirot', 'ศรีนครินทรวิโรฒ', 'มศว'],
+  'มหาวิทยาลัยบูรพา': ['BUU', 'Burapha', 'บูรพา'],
+  'มหาวิทยาลัยสงขลานครินทร์': ['PSU', 'Prince of Songkla', 'สงขลา', 'มอ'],
+  'มหาวิทยาลัยนเรศวร': ['NU', 'Naresuan', 'นเรศวร'],
+  'มหาวิทยาลัยพะเยา': ['UP', 'Phayao', 'พะเยา'],
+  'มหาวิทยาลัยวลัยลักษณ์': ['WU', 'Walailak', 'วลัยลักษณ์'],
+  'มหาวิทยาลัยอุบลราชธานี': ['UBU', 'Ubon Ratchathani', 'อุบล', 'มอบ'],
+  'มหาวิทยาลัยศิลปากร': ['SU', 'Silpakorn', 'ศิลปากร'],
+  'มหาวิทยาลัยรังสิต': ['RSU', 'Rangsit', 'รังสิต'],
+  'มหาวิทยาลัยอัสสัมชัญ': ['ABAC', 'Assumption', 'อัสสัมชัญ'],
+  'มหาวิทยาลัยหอการค้าไทย': ['UTCC', 'Thai Chamber of Commerce', 'หอการค้า'],
+  'มหาวิทยาลัยกรุงเทพ': ['BU', 'Bangkok University', 'กรุงเทพ'],
+  'มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าพระนครเหนือ': ['KMUTNB', 'พระนครเหนือ'],
+  'มหาวิทยาลัยเทคโนโลยีราชมงคลธัญบุรี': ['RMUTT', 'ราชมงคลธัญบุรี'],
+  'มหาวิทยาลัยสุโขทัยธรรมาธิราช': ['STOU', 'Sukhothai Thammathirat', 'สุโขทัย'],
+  'มหาวิทยาลัยเทคโนโลยีมหานคร': ['MUT', 'Mahanakorn', 'มหานคร'],
+  'มหาวิทยาลัยธุรกิจบัณฑิตย์': ['DPU', 'Dhurakij Pundit', 'ธุรกิจบัณฑิตย์'],
+  'มหาวิทยาลัยสยาม': ['Siam', 'สยาม'],
+  'มหาวิทยาลัยราชภัฏสวนสุนันทา': ['SSRU', 'Suan Sunandha', 'สวนสุนันทา'],
+  'มหาวิทยาลัยราชภัฏจันทรเกษม': ['CRU', 'Chandrakasem', 'จันทรเกษม'],
+  'มหาวิทยาลัยรามคำแหง': ['RU', 'Ramkhamhaeng', 'รามคำแหง']
+};
+
+function getUniAliases(uniTh) {
+  return UNI_ALIASES[uniTh] || [];
+}
+
 // ---- Explore Items (populated from API) ----
 let EXPLORE_ITEMS = [];
 
@@ -65,7 +102,10 @@ let appState = {
 
 // Load from localStorage as initial fallback
 try {
-  const saved = localStorage.getItem('tcasx_state');
+  // Check if there's a current authenticated user to load user-specific state
+  const currentUser = auth.currentUser;
+  const storageKey = currentUser ? `tcasx_state_${currentUser.uid}` : 'tcasx_state';
+  const saved = localStorage.getItem(storageKey);
   if (saved) {
     const parsed = JSON.parse(saved);
     Object.assign(appState, parsed);
@@ -74,7 +114,9 @@ try {
 
 // ---- Save State ----
 function saveState() {
-  localStorage.setItem('tcasx_state', JSON.stringify(appState));
+  // Use user-specific localStorage key for multi-account support
+  const storageKey = auth.currentUser ? `tcasx_state_${auth.currentUser.uid}` : 'tcasx_state';
+  localStorage.setItem(storageKey, JSON.stringify(appState));
 
   // Also persist to Firestore if authenticated
   const user = auth.currentUser;
@@ -248,20 +290,44 @@ function runAIAnalysis() {
     warnings.push('กิจกรรมทั้งหมดเป็นระดับโรงเรียน ลองสมัครกิจกรรมระดับภาคหรือประเทศเพื่อเพิ่มน้ำหนัก');
   }
 
-  // Smart recommendations: pick activities that fill gaps
+  // Smart recommendations: prioritize based on selected bachelor/faculty
   const gapCategories = gaps.map(g => g.category);
   const recPool = EXPLORE_ITEMS.filter(e => gapCategories.includes(e.type));
 
-  // Score each recommendation by relevance
+  // Score each recommendation by relevance to user's bachelor
   const scoredRecs = recPool.map(item => {
     const gap = gaps.find(g => g.category === item.type);
     let score = 0;
+    
+    // Base gap severity score
     score += gap?.severity === 'critical' ? 30 : gap?.severity === 'high' ? 20 : 10;
+    
+    // Faculty-specific relevance boost
+    if (fac) {
+      // Boost activities matching faculty field/keywords
+      const facultyKeywords = [fac.name, fac.nameEn, fac.uni, fac.uniEn, fac.fieldName].filter(Boolean).join(' ').toLowerCase();
+      const itemKeywords = [item.name, item.type].join(' ').toLowerCase();
+      
+      // Direct keyword matches
+      if (facultyKeywords.includes(item.type.toLowerCase())) score += 25;
+      if (itemKeywords.includes(fac.name.toLowerCase()) || itemKeywords.includes(fac.nameEn?.toLowerCase())) score += 20;
+      
+      // Track-based relevance
+      if (appState.track) {
+        const trackKeywords = getTrackKeywords(appState.track);
+        for (const kw of trackKeywords) {
+          if (itemKeywords.includes(kw.toLowerCase())) score += 8;
+        }
+      }
+    }
+    
     // Prefer higher-level activities to boost prestige
     if (['ประเทศ', 'นานาชาติ'].includes(item.cert)) score += 15;
     if (['ภาค'].includes(item.cert)) score += 8;
+    
     // Prefer activities with more spots (easier to get in)
     if (item.spots >= 100) score += 5;
+    
     return { ...item, matchScore: score, reason: gap?.message || '' };
   });
 
@@ -411,7 +477,9 @@ async function loadExternalData() {
         FACULTIES = apiFacs.map(f => ({
           id: f.id,
           name: f.fac_th || f.name || '',
+          nameEn: f.fac_en || '',
           uni: f.uni_th || f.uni || '',
+          uniEn: f.uni_en || '',
           facultyGroup: f.faculty_group_th || '',
           groupField: f.group_field_th || '',
           fieldName: f.field_name_th || '',
