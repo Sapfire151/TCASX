@@ -83,30 +83,28 @@ def fetch_cat(slug):
             dl_str, spots = "", 50
             is_outdated = False
             
-            if link and not os.environ.get("VERCEL"):
-                try:
-                    dr = http_req.get(link, headers=UA, timeout=10)
-                    ds = BeautifulSoup(dr.content, 'html.parser')
-                    tx = ds.get_text()
-                    
-                    # Check for outdated indicators
-                    if any(indicator in tx for indicator in ["ปิดรับสมัคร", "หมดเวลา", "สิ้นสุดการรับสมัคร", "ผ่านไปแล้ว"]):
-                        is_outdated = True
-                    
-                    # Check for year indicators to filter old activities
-                    year_match = re.search(r'(20\d{2})', tx)
-                    if year_match:
-                        activity_year = int(year_match.group(1))
-                        if activity_year < current_year - 1:  # Filter out activities older than last year
-                            is_outdated = True
-                    
-                    if "ปิดรับสมัคร" in tx:
-                        i = tx.find("ปิดรับสมัคร")
-                        dl_str = tx[i:i+40].replace('\n',' ').strip()
-                    if "จำนวนที่รับ" in tx:
-                        i = tx.find("จำนวนที่รับ")
-                        spots = ex_num(tx[i:i+30])
-                except: pass
+            # Disable detail page fetching to ensure activities are displayed
+            # The filtering was too aggressive and removing valid activities
+            # if link and not os.environ.get("VERCEL"):
+            #     try:
+            #         dr = http_req.get(link, headers=UA, timeout=10, follow_redirects=True)
+            #         dr.encoding = 'utf-8'
+            #         ds = BeautifulSoup(dr.text, 'html.parser')
+            #         tx = ds.get_text()
+            #         
+            #         # Only filter explicitly closed activities with "แล้ว" suffix
+            #         if any(indicator in tx for indicator in ["ปิดรับสมัครแล้ว", "หมดเขตแล้ว", "ปิดรับแล้ว", "สิ้นสุดแล้ว"]):
+            #             is_outdated = True
+            #         
+            #         if "ปิดรับสมัคร" in tx:
+            #             i = tx.find("ปิดรับสมัคร")
+            #             dl_str = tx[i:i+40].replace('\n',' ').strip()
+            #         if "จำนวนที่รับ" in tx:
+            #             i = tx.find("จำนวนที่รับ")
+            #             spots = ex_num(tx[i:i+30])
+            #     except Exception as e:
+            #         print(f"[WARN] Failed to fetch detail page for {link}: {e}")
+            #         pass
             
             # Skip outdated activities
             if is_outdated:
@@ -577,8 +575,8 @@ def config():
 @app.route('/api/activities')
 def activities():
     items = fetch_all()
-    # Filter out expired activities
-    EXPIRED_KEYWORDS = ['ปิดรับสมัครแล้ว', 'หมดเขต', 'ปิดรับแล้ว', 'สิ้นสุดแล้ว']
+    # Filter out only explicitly closed activities
+    EXPIRED_KEYWORDS = ['ปิดรับสมัครแล้ว', 'หมดเขตแล้ว', 'ปิดรับแล้ว', 'สิ้นสุดแล้ว']
     items = [a for a in items if not any(kw in (a.get('deadline','') or '') for kw in EXPIRED_KEYWORDS)]
     t = request.args.get('type')
     m = request.args.get('month')
